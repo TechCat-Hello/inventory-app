@@ -1,0 +1,41 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+*.sqlite3
+*.log
+db.sqlite3
+/media
+/staticfiles
+*.env
+.env
+.DS_Store
+
+# Docker
+*.pid
+*.db
+*.sock
+
+# VSCode
+.vscode/
+
+# Python
+*.egg-info/
+dist/
+build/
+
+# Migrations
+*/migrations/__pycache__/
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/*.pyd
+*/migrations/*.py~
+
+# Pytest
+htmlcov/
+.coverage
+
+# Docker
+**/__pycache__/
