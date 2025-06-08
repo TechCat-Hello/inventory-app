@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views import generic
 from .forms import CustomUserCreationForm
 from .models import Profile
@@ -41,7 +41,7 @@ def custom_login_view(request):
             else:
                 return redirect('user_dashboard')
         else:
-            return render(request, 'login.html', {'error': 'ユーザー名またはパスワードが正しくありません。'})
-    return render(request, 'login.html')
+            return render(request, 'registration/login.html', {'error': 'ユーザー名またはパスワードが正しくありません。'})
+    return render(request, 'registration/login.html')
 
     

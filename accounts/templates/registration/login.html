@@ -213,7 +213,7 @@
       確認できるアプリです。
     </div>
     <h1>ログイン</h1>
-    <form method="post" action="{% url 'custom_login' %}">
+    <form method="post" action="{% url 'login' %}">
       {% csrf_token %}
       <label for="username">ユーザー名:</label>
       <input type="text" name="username" id="username" required><br>
