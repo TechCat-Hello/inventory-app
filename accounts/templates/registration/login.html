@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ログイン | 在庫管理アプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f9;
+    }
+    .login-container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 340px;
+      text-align: center;
+    }
+    @media (min-width: 1024px) {
+      .login-container {
+        width: 600px; 
+        min-height: 600px;        
+      }
+      .app-title {
+        font-size: 2.5em;       
+      }
+      .app-description {
+        font-size: 1.15em;
+      }
+      h1 {
+        font-size: 1.5em;
+      }
+    }
+    .app-title {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #2563eb;
+      letter-spacing: 2px;
+      margin-bottom: 14px;
+      padding-bottom: 6px;
+      text-shadow: 0 2px 8px rgba(56,189,248,0.15);
+      border-bottom: 3px solid #38bdf8;
+      display: inline-block;
+    }
+    .app-description {
+      font-size: 0.98em;
+      color: #444;
+      margin-bottom: 22px;
+      line-height: 1.6;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 1.2em;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      text-align: left;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    input[type="submit"] {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    input[type="submit"]:hover {
+      background-color: #45a049;
+    }
+    .signup-link {
+      margin-top: 15px;
+    }
+    .signup-link p {
+      margin-bottom: 10px;
+    }
+    .signup-link button {
+      padding: 10px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .signup-link button:hover {
+      background-color: #1976D2;
+    }
+    .forgot-password {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .forgot-password a {
+      color: #2196F3;
+      text-decoration: underline;
+    }
+    .show-password {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      font-size: 15px;
+      font-family: Arial, sans-serif;
+    }
+    .show-password input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    .show-password label {
+      margin: 0;
+      font-weight: normal;
+      text-align: left;
+    }
+    .signup-btn {
+      display: block;
+      padding: 10px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 10px;
+    }
+    .signup-btn:hover {
+      background-color: #1976D2;
+    }
+    @media (max-width: 600px) {
+      body {
+        align-items: flex-start;
+        height: auto;
+        min-height: 100vh;
+      }
+      .login-container {
+        margin-top: 8px;
+        padding: 8px;
+        width: 98vw;
+      }
+      .app-title {
+        font-size: 1em;
+        margin-bottom: 6px;
+        padding-bottom: 2px;
+      }
+      .app-description {
+        font-size: 0.85em;
+        margin-bottom: 10px;
+        line-height: 1.3;
+      }
+      h1 {
+        font-size: 1em;
+        margin-bottom: 10px;
+      }
+      label {
+        margin: 6px 0 2px;
+        font-size: 0.95em;
+      }
+      input[type="text"], input[type="password"] {
+        padding: 7px;
+        font-size: 1em;
+      }
+      input[type="submit"], .signup-btn, .signup-link button {
+        padding: 10px 0;
+        font-size: 1em;
+      }
+      .forgot-password {
+        font-size: 12px;
+        margin-top: 6px;
+      }
+      .show-password {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+    }
+  </style>
+  <script>
+    function togglePassword() {
+      var passwordField = document.getElementById('password');
+      var checkbox = document.getElementById('show-password');
+      if (checkbox.checked) {
+        passwordField.type = 'text';
+      } else {
+        passwordField.type = 'password';
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="login-container">
+    <!-- アプリ名 -->
+    <div class="app-title">在庫管理アプリ</div>
+    <!-- アプリ説明 -->
+    <div class="app-description">
+      在庫を管理して<br>
+      ユーザーごとに貸し出し状況が<br>
+      確認できるアプリです。
+    </div>
+    <h1>ログイン</h1>
+    <form method="post" action="{% url 'custom_login' %}">
+      {% csrf_token %}
+      <label for="username">ユーザー名:</label>
+      <input type="text" name="username" id="username" required><br>
+      <label for="password">パスワード:</label>
+      <input type="password" name="password" id="password" required><br>
+      <div class="show-password">
+        <input type="checkbox" id="show-password" onclick="togglePassword()">
+        <label for="show-password">パスワードを表示する</label>
+      </div>
+      <div class="forgot-password">
+        パスワードをお忘れですか？ <a href="{% url 'password_reset' %}">こちらへ</a>
+      </div>
+      <input type="submit" value="ログイン">
+    </form>
+    <div class="signup-link">
+      <p>アカウントをお持ちでない方はこちら</p>
+      <a href="{% url 'signup' %}" class="signup-btn">新規登録</a>
+    </div>
+  </div>
+</body>
+</html>
