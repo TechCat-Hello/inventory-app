@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>{{ item.name }}</h2>
+  <p>カテゴリ: {{ item.category }}</p>
+  <p>数量: {{ item.quantity }}</p>
+  <p>保管場所: {{ item.location }}</p>
+  <p>説明: {{ item.description }}</p>
+  <p>登録日: {{ item.created_at|date:"Y-m-d H:i" }}</p>
+  <p>更新日: {{ item.updated_at|date:"Y-m-d H:i" }}</p>
+  <p><a href="{% url 'item_list' %}">← 一覧に戻る</a></p>
+{% endblock %}

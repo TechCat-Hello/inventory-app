@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>在庫管理システム</title>
+</head>
+<body>
+  {% if user.is_authenticated %}
+    <p>ログイン中：{{ user.username }}</p>
+    <p><a href="{% url 'logout' %}">ログアウト</a></p>
+  {% endif %}
+  {% block content %}{% endblock %}
+</body>
+</html>

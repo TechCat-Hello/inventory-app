@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>備品一覧</h2>
+  <ul>
+    {% for item in items %}
+      <li>
+        <a href="{% url 'item_detail' item.pk %}">{{ item.name }}</a>（{{ item.quantity }}個）
+      </li>
+    {% empty %}
+      <li>現在利用可能な備品はありません。</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
