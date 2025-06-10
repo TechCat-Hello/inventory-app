@@ -11,6 +11,12 @@
   <p><a href="{% url 'item_create' %}">新しい備品を登録する</a></p>
 
   <h2>あなたが登録した備品一覧</h2>
+
+  <form method="get" action="">
+  <input type="text" name="query" placeholder="キーワードを入力" value="{{ form.query.value|default_if_none:'' }}">
+  <button type="submit">検索</button>
+  </form>
+
   <ul>
     {% for item in items %}
       <li>

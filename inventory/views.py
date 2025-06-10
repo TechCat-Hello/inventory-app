@@ -6,6 +6,8 @@ from .forms import InventoryItemForm
 from django.core.exceptions import PermissionDenied
 from django.views.generic.edit import DeleteView
 from django.urls import reverse_lazy
+from .forms import ItemSearchForm
+from django.db.models import Q
 
 
 @login_required
@@ -34,9 +36,25 @@ def item_list(request):
     if request.user.is_staff:
         return HttpResponseForbidden("管理者ユーザーはこのページにアクセスできません。")
 
-    # 一般ユーザー向け処理続行
+    form = ItemSearchForm(request.GET or None)  # GETパラメータでフォームを初期化
     items = InventoryItem.objects.filter(is_available=True)  # 利用可能な備品だけ取得
-    context = {'items': items}
+
+    print(type(form))    #TEST
+    print(form.errors)    #TEST
+
+    if form.is_valid():
+        query = form.cleaned_data.get('query')
+        if query:
+            items = items.filter(
+                Q(name__icontains=query) | 
+                Q(description__icontains=query) |
+                Q(category__icontains=query)
+            ).filter(is_available=True)  # is_availableも追加で条件を残す
+
+    context = {
+        'form': form,
+        'items': items,
+    }
     return render(request, 'inventory/item_list.html', context)
 
 # 詳細表示ビュー

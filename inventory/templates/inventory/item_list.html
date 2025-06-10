@@ -3,6 +3,19 @@
 {% block content %}
   <h2>備品一覧</h2>
 
+  <form method="get" action="">
+  {{ form.query }}
+  <button type="submit">検索</button>
+  </form>
+
+  <ul>
+  {% for item in items %}
+    <li>{{ item.name }} - {{ item.description }}</li>
+  {% empty %}
+    <li>該当する備品はありません。</li>
+  {% endfor %}
+  </ul>
+
   <p><a href="{% url 'item_create' %}">新しい備品を登録する</a></p>
 
   <ul>
