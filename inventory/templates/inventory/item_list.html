@@ -2,6 +2,9 @@
 
 {% block content %}
   <h2>備品一覧</h2>
+
+  <p><a href="{% url 'item_create' %}">新しい備品を登録する</a></p>
+
   <ul>
     {% for item in items %}
       <li>

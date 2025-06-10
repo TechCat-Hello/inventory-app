@@ -1,7 +1,8 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import InventoryItem
 from django.http import HttpResponseForbidden
+from .forms import InventoryItemForm
 
 @login_required
 def admin_dashboard_view(request):
@@ -9,7 +10,8 @@ def admin_dashboard_view(request):
 
 @login_required
 def user_dashboard_view(request):
-    return render(request, 'inventory/user_dashboard.html')
+    items = InventoryItem.objects.filter(added_by=request.user)  # ← ログインユーザーの備品のみ取得
+    return render(request, 'inventory/user_dashboard.html', {'items': items})
 
 @login_required
 def redirect_after_login(request):
@@ -20,7 +22,7 @@ def redirect_after_login(request):
     
 # 一般ユーザー判定関数（例：is_staffではないユーザーを一般ユーザーとみなす）
 def is_general_user(user):
-    return not user.is_staff
+    return user.is_authenticated and not user.is_staff
 
 # 一覧表示ビュー
 @login_required
@@ -42,5 +44,41 @@ def item_detail(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
     return render(request, 'inventory/item_detail.html', {'item': item})
 
+# 登録
+@login_required
+@user_passes_test(is_general_user)
+def item_create(request):
+    if request.method == 'POST':
+        form = InventoryItemForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            item.added_by = request.user
+            item.save()
+            return redirect('item_detail', pk=item.pk)  # 備品一覧にリダイレクト
+    else:
+        form = InventoryItemForm()
+    return render(request, 'inventory/item_form.html', {'form': form, 'title': '備品登録'})
+
+# 編集
+@login_required
+def item_update(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk, added_by=request.user)
+    if request.method == 'POST':
+        form = InventoryItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            return redirect('user_dashboard')
+    else:
+        form = InventoryItemForm(instance=item)
+    return render(request, 'inventory/item_form.html', {'form': form, 'title': '備品編集'})
+
+# 削除（確認画面あり）
+@login_required
+def item_delete(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk, added_by=request.user)
+    if request.method == 'POST':
+        item.delete()
+        return redirect('user_dashboard')
+    return render(request, 'inventory/item_confirm_delete.html', {'item': item})
 
 
