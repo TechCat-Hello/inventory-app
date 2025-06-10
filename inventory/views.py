@@ -39,17 +39,19 @@ def item_list(request):
     form = ItemSearchForm(request.GET or None)  # GETパラメータでフォームを初期化
     items = InventoryItem.objects.filter(is_available=True)  # 利用可能な備品だけ取得
 
-    print(type(form))    #TEST
-    print(form.errors)    #TEST
-
     if form.is_valid():
         query = form.cleaned_data.get('query')
+        stock_filter = form.cleaned_data.get('stock_filter')
+
         if query:
             items = items.filter(
-                Q(name__icontains=query) | 
-                Q(description__icontains=query) |
-                Q(category__icontains=query)
-            ).filter(is_available=True)  # is_availableも追加で条件を残す
+                Q(name__icontains=query) | Q(description__icontains=query)
+            )
+
+        if stock_filter == 'in_stock':
+            items = items.filter(quantity__gt=0)
+        elif stock_filter == 'out_of_stock':
+            items = items.filter(quantity__lte=0)
 
     context = {
         'form': form,

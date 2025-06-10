@@ -5,12 +5,13 @@
 
   <form method="get" action="">
   {{ form.query }}
+  {{ form.stock_filter }}
   <button type="submit">検索</button>
   </form>
 
   <ul>
   {% for item in items %}
-    <li>{{ item.name }} - {{ item.description }}</li>
+    <li>{{ item.name }} - {{ item.description }}（{{ item.quantity }}個）</li>
   {% empty %}
     <li>該当する備品はありません。</li>
   {% endfor %}
