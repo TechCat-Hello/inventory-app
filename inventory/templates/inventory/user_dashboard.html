@@ -9,5 +9,18 @@
   <p>ようこそ、{{ request.user.username }}さん（一般ユーザー）</p>
   <p><a href="{% url 'item_list' %}">備品一覧を確認する</a></p>
   <p><a href="{% url 'item_create' %}">新しい備品を登録する</a></p>
+
+  <h2>あなたが登録した備品一覧</h2>
+  <ul>
+    {% for item in items %}
+      <li>
+        {{ item.name }}（{{ item.quantity }}個）
+        <a href="{% url 'edit_item' item.pk %}">編集</a>
+      </li>
+    {% empty %}
+      <li>登録された備品がありません。</li>
+    {% endfor %}
+  </ul>
 </body>
 </html>
+

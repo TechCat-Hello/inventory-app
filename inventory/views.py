@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import InventoryItem
 from django.http import HttpResponseForbidden
 from .forms import InventoryItemForm
+#from .forms import ItemForm
 
 @login_required
 def admin_dashboard_view(request):
@@ -80,5 +81,23 @@ def item_delete(request, pk):
         item.delete()
         return redirect('user_dashboard')
     return render(request, 'inventory/item_confirm_delete.html', {'item': item})
+
+@login_required
+def edit_item(request, pk):
+    item = get_object_or_404(InventoryItem, pk=pk)
+
+    # 一般ユーザーは自分が登録したものだけ編集可能
+    if not request.user.is_superuser and item.user != request.user:
+        return redirect('user_dashboard')  # 不正アクセス防止
+
+    if request.method == 'POST':
+        form = InventoryItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            return redirect('user_dashboard')  # または 'item_detail', args=[item.pk]
+    else:
+        form = InventoryItemForm(instance=item)
+
+    return render(request, 'inventory/edit_item.html', {'form': form, 'item': item})
 
 
