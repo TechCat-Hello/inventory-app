@@ -9,6 +9,9 @@
     {% for item in items %}
       <li>
         <a href="{% url 'item_detail' item.pk %}">{{ item.name }}</a>（{{ item.quantity }}個）
+        {% if item.user == request.user %}
+        ｜<a href="{% url 'item_delete' item.pk %}">削除</a>
+        {% endif %}
       </li>
     {% empty %}
       <li>現在利用可能な備品はありません。</li>

@@ -1,7 +1,12 @@
-<h2>削除の確認</h2>
-<p>本当に削除しますか？: {{ item.name }}</p>
-<form method="post">
-  {% csrf_token %}
-  <button type="submit">削除</button>
-</form>
-<a href="{% url 'user_dashboard' %}">キャンセル</a>
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>「{{ object.name }}」を本当に削除しますか？</h2>
+  
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">削除する</button>
+    <a href="{% url 'user_dashboard' %}">キャンセル</a>
+  </form>
+{% endblock %}
+

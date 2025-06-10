@@ -3,7 +3,10 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import InventoryItem
 from django.http import HttpResponseForbidden
 from .forms import InventoryItemForm
-#from .forms import ItemForm
+from django.core.exceptions import PermissionDenied
+from django.views.generic.edit import DeleteView
+from django.urls import reverse_lazy
+
 
 @login_required
 def admin_dashboard_view(request):
@@ -99,5 +102,16 @@ def edit_item(request, pk):
         form = InventoryItemForm(instance=item)
 
     return render(request, 'inventory/edit_item.html', {'form': form, 'item': item})
+
+class InventoryItemDeleteView(DeleteView):
+    model = InventoryItem
+    template_name = 'inventory/item_confirm_delete.html'
+    success_url = reverse_lazy('items_list')
+
+    def dispatch(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if obj.user != request.user:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
 

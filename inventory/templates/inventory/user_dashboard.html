@@ -15,7 +15,10 @@
     {% for item in items %}
       <li>
         {{ item.name }}（{{ item.quantity }}個）
-        <a href="{% url 'edit_item' item.pk %}">編集</a>
+        {% if item.added_by == request.user %}
+          <a href="{% url 'edit_item' item.pk %}">編集</a>
+          <a href="{% url 'item_delete' item.pk %}">削除</a>
+        {% endif %}
       </li>
     {% empty %}
       <li>登録された備品がありません。</li>
