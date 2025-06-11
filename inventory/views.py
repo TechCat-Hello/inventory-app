@@ -143,7 +143,7 @@ class InventoryItemDeleteView(DeleteView):
         return super().dispatch(request, *args, **kwargs)
     
 @login_required
-def rental_create(request,item_id=None):
+def rental_create(request, item_id=None):
     item = None
     if item_id:
         item = get_object_or_404(InventoryItem, pk=item_id)
@@ -155,11 +155,17 @@ def rental_create(request,item_id=None):
             rental.item = item
             rental.user = request.user
             rental.status = 'borrowed'
+
+            # 在庫チェック
+            if rental.quantity > item.quantity:
+                messages.error(request, f"在庫数（{item.quantity}個）より多くは貸し出せません。")
+                return redirect('user_dashboard')
+
             rental.save()
+            item.quantity -= rental.quantity
+            item.save()
+
             messages.success(request, f"{rental.item.name} を貸し出しました（予定返却日: {rental.expected_return_date}）。")
-            rental.item.quantity -= rental.quantity
-            rental.item.save()
-            
             return redirect('user_dashboard')
     else:
         form = RentalForm()
