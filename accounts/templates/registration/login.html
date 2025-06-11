@@ -215,6 +215,13 @@
     <h1>ログイン</h1>
     <form method="post" action="{% url 'login' %}">
       {% csrf_token %}
+
+      {% if messages %}
+        {% for message in messages %}
+          <div style="color: red;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
       <label for="username">ユーザー名:</label>
       <input type="text" name="username" id="username" required><br>
       <label for="password">パスワード:</label>

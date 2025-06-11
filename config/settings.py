@@ -107,3 +107,6 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/redirect/'
 #LOGIN_REDIRECT_URL = '/dashboard_redirect/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
+

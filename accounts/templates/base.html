@@ -41,6 +41,12 @@
   </header>
 
   <div class="container">
+    {% if messages %}
+      {% for message in messages %}
+        <div style="color: red; margin-bottom: 10px;">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
     {% block content %}
     {% endblock %}
   </div>

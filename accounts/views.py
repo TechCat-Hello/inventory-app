@@ -5,12 +5,26 @@ from django.views import generic
 from .forms import CustomUserCreationForm
 from .models import Profile
 from django.contrib.auth import authenticate, login
-
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
 
 # ログインページ
 def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            if user.is_staff:
+                return redirect('admin_dashboard')
+            else:
+                return redirect('user_dashboard')
+        else:
+            messages.error(request, 'ユーザー名またはパスワードが正しくありません')
+            return render(request, 'registration/login.html')
     return render(request, 'registration/login.html')
-
 
 # 新規登録ページ
 def signup_view(request):
@@ -41,7 +55,8 @@ def custom_login_view(request):
             else:
                 return redirect('user_dashboard')
         else:
-            return render(request, 'registration/login.html', {'error': 'ユーザー名またはパスワードが正しくありません。'})
+            messages.error(request, 'ユーザー名またはパスワードが正しくありません。')
+            return render(request, 'registration/login.html')
     return render(request, 'registration/login.html')
 
     
