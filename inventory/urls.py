@@ -17,4 +17,5 @@ urlpatterns = [
     path('rental/create/<int:item_id>/', views.rental_create, name='rental_create'),
     path('rentals/create/', views.rental_create, name='rental_create'),
     path('return_item/<int:rental_id>/', views.return_item, name='return_item'),
+    path('admin_rentals/', views.all_rental_history_view, name='all_rental_history'),
 ]

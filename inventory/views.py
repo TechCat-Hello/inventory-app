@@ -34,7 +34,7 @@ def redirect_after_login(request):
     else:
         return redirect('user_dashboard')
     
-# 一般ユーザー判定関数（例：is_staffではないユーザーを一般ユーザーとみなす）
+# 一般ユーザー判定関数
 def is_general_user(user):
     return user.is_authenticated and not user.is_staff
 
@@ -202,6 +202,15 @@ def return_item(request, rental_id):
             messages.success(request, f"{rental.item.name}をすべて返却しました。")
 
     return redirect('user_dashboard')
+
+@login_required
+def all_rental_history_view(request):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("このページは管理者のみアクセス可能です。")
+    
+    rentals = Rental.objects.select_related('user', 'item').order_by('-rental_date')
+    return render(request, 'inventory/all_rental_history.html', {'rentals': rentals})
+
 
 
 

@@ -9,6 +9,7 @@
   <p>ようこそ、{{ request.user.username }}さん（管理者）</p>
 
   <p><a href="/admin/" target="_blank">▶ 管理画面へ</a></p>
+  <p><a href="{% url 'all_rental_history' %}">▶ 全ユーザーの貸出履歴を見る</a></p>
 </body>
 </html>
 

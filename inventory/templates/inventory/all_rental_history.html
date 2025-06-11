@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>全ユーザーの貸出履歴</h2>
+
+<style>
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 100%;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  thead {
+    background-color: #f2f2f2;
+  }
+  tbody tr:hover {
+    background-color: #f9f9f9;
+  }
+</style>
+
+<table>
+    <thead>
+        <tr>
+            <th>ユーザー</th>
+            <th>備品名</th>
+            <th>数量</th>
+            <th>貸出日</th>
+            <th>予定返却日</th>
+            <th>返却日</th>
+            <th>ステータス</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rental in rentals %}
+        <tr>
+            <td>{{ rental.user.username }}</td>
+            <td>{{ rental.item.name }}</td>
+            <td>{{ rental.quantity }}</td>
+            <td>{{ rental.rental_date|date:"Y/m/d" }}</td>
+            <td>{{ rental.expected_return_date|date:"Y/m/d" }}</td>
+            <td>{{ rental.return_date|date:"Y/m/d"|default:"未返却" }}</td>
+            <td>{{ rental.get_status_display }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;">貸出履歴がありません</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
