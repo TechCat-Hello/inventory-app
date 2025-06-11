@@ -3,54 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <title>ユーザーダッシュボード</title>
+  <!-- Bootstrap CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <h1>ユーザーダッシュボード</h1>
-  <p>ようこそ、{{ request.user.username }}さん（一般ユーザー）</p>
-  <p><a href="{% url 'item_list' %}">備品一覧を確認する・借りる</a></p>
-  <p><a href="{% url 'item_create' %}">新しい備品を登録する</a></p>
-
-  <h2>あなたの貸出中の備品一覧</h2>
-<table>
-    <thead>
-        <tr>
-            <th>備品名</th>
-            <th>個数</th>
-            <th>貸出日</th>
-            <th>返却日</th>
-            <th>ステータス</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for rental in rentals %}
-            <tr>
-                <td>{{ rental.item.name }}</td> 
-                <td>{{ rental.quantity }}</td>
-                <td>{{ rental.rental_date|date:"Y年n月j日" }}</td>
-                <td>{{ rental.return_date|date:"Y年n月j日" }}</td>
-                <td>{{ rental.status }}</td>
-            </tr>
-        {% empty %}
-            <tr><td colspan="4">貸出中の備品はありません。</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-  <h2>あなたが登録した備品一覧</h2>
-
-  <ul>
-    {% for item in items %}
-      <li>
-        {{ item.name }}（{{ item.quantity }}個）
-        {% if item.added_by == request.user %}
-          <a href="{% url 'edit_item' item.pk %}">編集</a>
-          <a href="{% url 'item_delete' item.pk %}">削除</a>
-        {% endif %}
-      </li>
-    {% empty %}
-      <li>登録された備品がありません。</li>
+  <!-- メッセージ表示 -->
+  {% if messages %}
+  <div class="container mt-3">
+    {% for message in messages %}
+      <div class="alert alert-success" role="alert">
+        {{ message }}
+      </div>
     {% endfor %}
-  </ul>
+  </div>
+  {% endif %}
+  
+  <div class="container mt-4">
+    <h1>ユーザーダッシュボード</h1>
+    <p>ようこそ、{{ request.user.username }}さん（一般ユーザー）</p>
+    <p><a href="{% url 'item_list' %}">備品一覧を確認する・借りる</a></p>
+    <p><a href="{% url 'item_create' %}">新しい備品を登録する</a></p>
+
+    <h2>あなたの貸出中の備品一覧</h2>
+    <table class="table table-bordered">
+      <thead>
+          <tr>
+              <th>備品名</th>
+              <th>個数</th>
+              <th>貸出日</th>
+              <th>予定返却日</th>
+              <th>返却日</th>
+              <th>ステータス</th>
+              <th>操作</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for rental in rentals %}
+          <tr>
+            <td>{{ rental.item.name }}</td>
+            <td>{{ rental.quantity }}</td>
+            <td>{{ rental.rental_date|date:"Y年n月j日" }}</td>
+            <td>
+              {% if rental.expected_return_date %}
+                {{ rental.expected_return_date|date:"Y年n月j日" }}
+              {% else %}
+                ―
+              {% endif %}
+            </td>
+            <td>
+              {% if rental.return_date %}
+                {{ rental.return_date|date:"Y年n月j日" }}
+              {% else %}
+                ―
+              {% endif %}
+            </td>
+            <td>{{ rental.get_status_display }}</td>
+            <td>
+              {% if rental.status == 'borrowed' and rental.quantity > 0 %}
+                <form method="post" action="{% url 'return_item' rental.id %}">
+                  {% csrf_token %}
+                  <button type="submit">1個返却</button>
+                </form>
+              {% else %}
+                返却済
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6">貸出中の備品はありません。</td></tr>
+          {% endfor %}
+     </tbody>
+    </table>
+
+    <h2>あなたが登録した備品一覧</h2>
+
+    <ul class="list-group">
+      {% for item in items %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          {{ item.name }}（{{ item.quantity }}個）
+          <span>
+            {% if item.added_by == request.user %}
+              <a href="{% url 'edit_item' item.pk %}" class="btn btn-sm btn-outline-secondary">編集</a>
+              <a href="{% url 'item_delete' item.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
+            {% endif %}
+          </span>
+        </li>
+      {% empty %}
+        <li class="list-group-item">登録された備品がありません。</li>
+      {% endfor %}
+    </ul>
+  </div>
 </body>
 </html>
+
 

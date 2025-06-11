@@ -11,7 +11,7 @@ class InventoryItemAdmin(admin.ModelAdmin):
 
 @admin.register(Rental)
 class RentalAdmin(admin.ModelAdmin):
-    list_display = ('item', 'user', 'rental_date', 'return_date', 'status')
+    list_display = ('item', 'user', 'quantity', 'status', 'expected_return_date', 'return_date')
     search_fields = ('item__name', 'user__username')
     list_filter = ('status',)
 

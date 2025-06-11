@@ -10,7 +10,14 @@
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">貸出登録</button>
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <button type="submit" class="btn btn-primary">貸し出し登録</button>
   </form>
 
   <p><a href="{% url 'rental_list' %}">貸出一覧に戻る</a></p>

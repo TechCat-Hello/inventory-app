@@ -25,14 +25,23 @@ class ItemSearchForm(forms.Form):
     )
 
 class RentalForm(forms.ModelForm):
+    expected_return_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        label='予定返却日',
+        required=False  # 任意入力にする
+    )
     class Meta:
         model = Rental
-        fields = ['quantity', 'return_date']
-        widgets = {
-            'return_date': forms.DateInput(
-                attrs={'type': 'date', 'class': 'form-control'}
-            ),
-        }
-       
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        fields = ['quantity', 'expected_return_date']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        item = cleaned_data.get('item')
+        quantity = cleaned_data.get('quantity')
+
+        if item and quantity:
+            if quantity > item.quantity:
+                raise forms.ValidationError(
+                    f"在庫数({item.quantity})を超える貸し出しはできません。"
+                )
+        return cleaned_data

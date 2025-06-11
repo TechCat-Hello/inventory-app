@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import InventoryItem, Rental
+from .models import InventoryItem, Rental, ReturnLog
 from django.http import HttpResponseForbidden
 from .forms import InventoryItemForm, ItemSearchForm, RentalForm
 from django.core.exceptions import PermissionDenied
 from django.views.generic.edit import DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Q
+from django.contrib import messages
+from django.utils import timezone
 
 
 @login_required
@@ -152,11 +154,15 @@ def rental_create(request,item_id=None):
             rental = form.save(commit=False)
             rental.item = item
             rental.user = request.user
-            rental.status = 'rented'
+            rental.status = 'borrowed'
             rental.save()
+            messages.success(request, f"{rental.item.name} を貸し出しました（予定返却日: {rental.expected_return_date}）。")
+            rental.item.quantity -= rental.quantity
+            rental.item.save()
+            
             return redirect('user_dashboard')
     else:
-        form = RentalForm(initial={'item': item})
+        form = RentalForm()
     return render(request, 'inventory/rental_create.html', {'form': form, 'item': item})
 
 @login_required
@@ -164,5 +170,26 @@ def rental_list(request):
     rentals = Rental.objects.all().order_by('-rental_date')
     return render(request, 'inventory/rental_list.html', {'rentals': rentals})
 
+@login_required
+def return_item(request, rental_id):
+    rental = get_object_or_404(Rental, id=rental_id, user=request.user)
+
+    if request.method == 'POST' and rental.status == 'borrowed':
+        if rental.quantity > 1:
+            rental.quantity -= 1
+            rental.save()
+            # 返却履歴を作成
+            ReturnLog.objects.create(rental=rental, returned_quantity=1, returned_by=request.user)
+            messages.success(request, f"{rental.item.name}を1個返却しました。残り{rental.quantity}個貸出中です。")
+        else:
+            rental.quantity = 0
+            rental.status = 'returned'
+            rental.return_date = timezone.now().date()
+            rental.save()
+            # 最後の返却履歴も作成
+            ReturnLog.objects.create(rental=rental, returned_quantity=1, returned_by=request.user)
+            messages.success(request, f"{rental.item.name}をすべて返却しました。")
+
+    return redirect('user_dashboard')
 
 
