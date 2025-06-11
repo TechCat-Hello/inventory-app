@@ -149,14 +149,14 @@ def rental_create(request, item_id=None):
         item = get_object_or_404(InventoryItem, pk=item_id)
 
     if request.method == 'POST':
-        form = RentalForm(request.POST)
+        # item を initial に渡す（cleanメソッドで使用）
+        form = RentalForm(request.POST, initial={'item': item})
         if form.is_valid():
             rental = form.save(commit=False)
             rental.item = item
             rental.user = request.user
             rental.status = 'borrowed'
 
-            # 在庫チェック
             if rental.quantity > item.quantity:
                 messages.error(request, f"在庫数（{item.quantity}個）より多くは貸し出せません。")
                 return redirect('user_dashboard')
@@ -165,10 +165,15 @@ def rental_create(request, item_id=None):
             item.quantity -= rental.quantity
             item.save()
 
-            messages.success(request, f"{rental.item.name} を貸し出しました（予定返却日: {rental.expected_return_date}）。")
+            messages.success(
+                request,
+                f"{rental.item.name} を貸し出しました（予定返却日: {rental.expected_return_date}）。"
+            )
             return redirect('user_dashboard')
     else:
-        form = RentalForm()
+        # GETリクエスト時にも item を initial に渡す
+        form = RentalForm(initial={'item': item})
+
     return render(request, 'inventory/rental_create.html', {'form': form, 'item': item})
 
 @login_required
@@ -197,5 +202,8 @@ def return_item(request, rental_id):
             messages.success(request, f"{rental.item.name}をすべて返却しました。")
 
     return redirect('user_dashboard')
+
+
+
 
 

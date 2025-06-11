@@ -4,17 +4,36 @@
   <h1>備品貸出登録</h1>
 
   {% if item %}
-  <h2>貸出する備品: {{ item.name }}</h2>
-{% endif %}
+    <h2>貸出する備品: {{ item.name }}</h2>
+  {% endif %}
 
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+
+    <div class="form-group">
+      <label for="id_quantity">数量</label>
+      {{ form.quantity }}
+      {% if form.quantity.errors %}
+        <div class="text-danger">
+          {{ form.quantity.errors }}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="id_expected_return_date">予定返却日</label>
+      {{ form.expected_return_date }}
+      {% if form.expected_return_date.errors %}
+        <div class="text-danger">
+          {{ form.expected_return_date.errors }}
+        </div>
+      {% endif %}
+    </div>
 
     {% if form.non_field_errors %}
-        <div class="alert alert-danger">
-            {{ form.non_field_errors }}
-        </div>
+      <div class="alert alert-danger">
+        {{ form.non_field_errors }}
+      </div>
     {% endif %}
 
     <button type="submit" class="btn btn-primary">貸し出し登録</button>
@@ -24,4 +43,5 @@
     <a href="{% url 'user_dashboard' %}" style="color: blue; text-decoration: underline;">← ユーザーダッシュボードに戻る</a>
   </p>
 {% endblock %}
+
 

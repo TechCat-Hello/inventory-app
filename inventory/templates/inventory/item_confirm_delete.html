@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <h2>「{{ object.name }}」を本当に削除しますか？</h2>
+  <h2>「{{ item.name }}」を本当に削除しますか？</h2>
   
   <form method="post">
     {% csrf_token %}

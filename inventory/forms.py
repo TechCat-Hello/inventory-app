@@ -1,6 +1,6 @@
 from django import forms
 from .models import InventoryItem, Rental
-
+from django.utils import timezone
 
 class InventoryItemForm(forms.ModelForm):
     class Meta:
@@ -26,17 +26,18 @@ class ItemSearchForm(forms.Form):
 
 class RentalForm(forms.ModelForm):
     expected_return_date = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'required': 'required'}),
         label='予定返却日',
-        required=False  # 任意入力にする
+        required=True  
     )
+
     class Meta:
         model = Rental
         fields = ['quantity', 'expected_return_date']
 
     def clean(self):
         cleaned_data = super().clean()
-        item = cleaned_data.get('item')
+        item = self.initial.get('item')  # モデルにない item は initial から取得
         quantity = cleaned_data.get('quantity')
 
         if item and quantity:
@@ -44,4 +45,13 @@ class RentalForm(forms.ModelForm):
                 raise forms.ValidationError(
                     f"在庫数({item.quantity})を超える貸し出しはできません。"
                 )
+
         return cleaned_data
+
+    def clean_expected_return_date(self):
+        expected_return_date = self.cleaned_data.get('expected_return_date')
+        if not expected_return_date:
+            raise forms.ValidationError('返却予定日を入力してください。')
+        if expected_return_date < timezone.localdate():
+            raise forms.ValidationError('返却日は今日以降の日付を指定してください。')
+        return expected_return_date
