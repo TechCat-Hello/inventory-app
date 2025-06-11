@@ -9,15 +9,7 @@
   <button type="submit">検索</button>
   </form>
 
-  <ul>
-  {% for item in items %}
-    <li>{{ item.name }} - {{ item.description }}（{{ item.quantity }}個）</li>
-  {% empty %}
-    <li>該当する備品はありません。</li>
-  {% endfor %}
-  </ul>
-
-  <p><a href="{% url 'item_create' %}">新しい備品を登録する</a></p>
+  <p><a href="{% url 'item_create' %}" class="btn btn-primary">＋ 新しい備品を登録する</a></p>
 
   <ul>
     {% for item in items %}
@@ -26,6 +18,7 @@
         {% if item.user == request.user %}
         ｜<a href="{% url 'item_delete' item.pk %}">削除</a>
         {% endif %}
+        ｜<a href="{% url 'rental_create' item.id %}">貸出</a>
       </li>
     {% empty %}
       <li>現在利用可能な備品はありません。</li>

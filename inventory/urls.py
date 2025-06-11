@@ -13,4 +13,7 @@ urlpatterns = [
     path('items/<int:pk>/delete/', views.item_delete, name='item_delete'),
     path('items/<int:pk>/edit/', views.edit_item, name='edit_item'),
     path('items/<int:pk>/delete/', views.InventoryItemDeleteView.as_view(), name='item_delete'),
+    path('rentals/', views.rental_list, name='rental_list'),
+    path('rental/create/<int:item_id>/', views.rental_create, name='rental_create'),
+    path('rentals/create/', views.rental_create, name='rental_create'),
 ]

@@ -1,8 +1,6 @@
 from django.contrib import admin
-#from .models import Item    #削除予定
-from .models import InventoryItem
+from .models import InventoryItem, Rental
 
-#admin.site.register(Item)    #削除予定
 
 @admin.register(InventoryItem)
 class InventoryItemAdmin(admin.ModelAdmin):
@@ -10,6 +8,12 @@ class InventoryItemAdmin(admin.ModelAdmin):
     search_fields = ('name', 'category')
     list_filter = ('category', 'is_available')
     readonly_fields = ('added_by',)  # 表示のみ（編集不可）
+
+@admin.register(Rental)
+class RentalAdmin(admin.ModelAdmin):
+    list_display = ('item', 'user', 'rental_date', 'return_date', 'status')
+    search_fields = ('item__name', 'user__username')
+    list_filter = ('status',)
 
 admin.site.site_header = "在庫管理 管理画面"
 admin.site.site_title = "在庫管理 Admin"

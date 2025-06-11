@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .models import InventoryItem
+from .models import InventoryItem, Rental
 from django.http import HttpResponseForbidden
-from .forms import InventoryItemForm
+from .forms import InventoryItemForm, ItemSearchForm, RentalForm
 from django.core.exceptions import PermissionDenied
 from django.views.generic.edit import DeleteView
 from django.urls import reverse_lazy
-from .forms import ItemSearchForm
 from django.db.models import Q
 
 
@@ -16,8 +15,15 @@ def admin_dashboard_view(request):
 
 @login_required
 def user_dashboard_view(request):
-    items = InventoryItem.objects.filter(added_by=request.user)  # ← ログインユーザーの備品のみ取得
-    return render(request, 'inventory/user_dashboard.html', {'items': items})
+    # 自分が登録した備品
+    items = InventoryItem.objects.filter(added_by=request.user)
+    # 自分が借りた貸出データ
+    rentals = Rental.objects.filter(user=request.user).select_related('item')
+
+    return render(request, 'inventory/user_dashboard.html', {
+        'items': items,
+        'rentals': rentals, 
+    })
 
 @login_required
 def redirect_after_login(request):
@@ -133,5 +139,30 @@ class InventoryItemDeleteView(DeleteView):
         if obj.user != request.user:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
+    
+@login_required
+def rental_create(request,item_id=None):
+    item = None
+    if item_id:
+        item = get_object_or_404(InventoryItem, pk=item_id)
+
+    if request.method == 'POST':
+        form = RentalForm(request.POST)
+        if form.is_valid():
+            rental = form.save(commit=False)
+            rental.item = item
+            rental.user = request.user
+            rental.status = 'rented'
+            rental.save()
+            return redirect('user_dashboard')
+    else:
+        form = RentalForm(initial={'item': item})
+    return render(request, 'inventory/rental_create.html', {'form': form, 'item': item})
+
+@login_required
+def rental_list(request):
+    rentals = Rental.objects.all().order_by('-rental_date')
+    return render(request, 'inventory/rental_list.html', {'rentals': rentals})
+
 
 

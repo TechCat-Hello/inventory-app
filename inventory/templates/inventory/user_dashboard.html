@@ -7,15 +7,36 @@
 <body>
   <h1>ユーザーダッシュボード</h1>
   <p>ようこそ、{{ request.user.username }}さん（一般ユーザー）</p>
-  <p><a href="{% url 'item_list' %}">備品一覧を確認する</a></p>
+  <p><a href="{% url 'item_list' %}">備品一覧を確認する・借りる</a></p>
   <p><a href="{% url 'item_create' %}">新しい備品を登録する</a></p>
 
-  <h2>あなたが登録した備品一覧</h2>
+  <h2>あなたの貸出中の備品一覧</h2>
+<table>
+    <thead>
+        <tr>
+            <th>備品名</th>
+            <th>個数</th>
+            <th>貸出日</th>
+            <th>返却日</th>
+            <th>ステータス</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rental in rentals %}
+            <tr>
+                <td>{{ rental.item.name }}</td> 
+                <td>{{ rental.quantity }}</td>
+                <td>{{ rental.rental_date|date:"Y年n月j日" }}</td>
+                <td>{{ rental.return_date|date:"Y年n月j日" }}</td>
+                <td>{{ rental.status }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4">貸出中の備品はありません。</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
 
-  <form method="get" action="">
-  <input type="text" name="query" placeholder="キーワードを入力" value="{{ form.query.value|default_if_none:'' }}">
-  <button type="submit">検索</button>
-  </form>
+  <h2>あなたが登録した備品一覧</h2>
 
   <ul>
     {% for item in items %}

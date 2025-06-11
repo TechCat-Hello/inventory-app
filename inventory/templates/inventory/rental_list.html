@@ -1,0 +1,11 @@
+<h1>貸出履歴一覧</h1>
+
+<ul>
+  {% for rental in rentals %}
+    <li>
+      {{ rental.item.name }} - {{ rental.user.username }} - {{ rental.rental_date }} - {{ rental.get_status_display }}
+    </li>
+  {% empty %}
+    <li>まだ貸出はありません。</li>
+  {% endfor %}
+</ul>

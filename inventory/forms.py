@@ -1,5 +1,5 @@
 from django import forms
-from .models import InventoryItem
+from .models import InventoryItem, Rental
 
 
 class InventoryItemForm(forms.ModelForm):
@@ -23,3 +23,16 @@ class ItemSearchForm(forms.Form):
             ('out_of_stock', '在庫なし')
         ]
     )
+
+class RentalForm(forms.ModelForm):
+    class Meta:
+        model = Rental
+        fields = ['quantity', 'return_date']
+        widgets = {
+            'return_date': forms.DateInput(
+                attrs={'type': 'date', 'class': 'form-control'}
+            ),
+        }
+       
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
