@@ -262,8 +262,10 @@ def all_rental_history_view(request):
 def export_rentals_csv(request):
     rentals = Rental.objects.filter(user=request.user)
 
-    response = HttpResponse(content_type='text/csv')
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="rental_history.csv"'
+
+    response.write('\ufeff')
 
     writer = csv.writer(response)
     writer.writerow(['アイテム名', '数量', '貸出日', '返却予定日', '返却日', 'ステータス'])
@@ -294,9 +296,9 @@ def export_rentals_excel(request):
         ws.append([
             rental.item.name,
             rental.quantity,
-            rental.rental_date.strftime("%Y-%m-%d"),
-            rental.expected_return_date.strftime("%Y-%m-%d"),
-            rental.return_date.strftime("%Y-%m-%d") if rental.return_date else '未返却',
+            rental.rental_date.strftime("%Y/%m/%d"),
+            rental.expected_return_date.strftime("%Y/%m/%d"),
+            rental.return_date.strftime("%Y/%m/%d") if rental.return_date else '未返却',
             dict(Rental.STATUS_CHOICES).get(rental.status, rental.status),
         ])
 
@@ -313,11 +315,12 @@ def export_rentals_pdf(request):
 
     # レンダリング用のHTMLテンプレートに渡すコンテキスト
     context = {
-        'rentals': rentals
+        'rentals': rentals,
+        'user': request.user,
     }
 
     # テンプレートをHTMLに変換
-    html_string = render_to_string('rental/rental_history_pdf.html', context)
+    html_string = render_to_string('inventory/rental_history_pdf.html', context)
 
     # PDFに変換
     html = HTML(string=html_string)
