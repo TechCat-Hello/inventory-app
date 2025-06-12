@@ -41,3 +41,4 @@ class ReturnLog(models.Model):
 
     def __str__(self):
         return f"{self.rental.item.name} - {self.returned_quantity}個返却 ({self.returned_at.strftime('%Y/%m/%d %H:%M')})"
+    

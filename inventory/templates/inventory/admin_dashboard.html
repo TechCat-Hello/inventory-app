@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>管理者ダッシュボード</title>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}管理者ダッシュボード{% endblock %}
+
+{% block content %}
   <h1>管理者ダッシュボード</h1>
   <p>ようこそ、{{ request.user.username }}さん（管理者）</p>
 
   <p><a href="/admin/" target="_blank">▶ 管理画面へ</a></p>
   <p><a href="{% url 'all_rental_history' %}">▶ 全ユーザーの貸出履歴を見る</a></p>
-</body>
-</html>
+{% endblock %}
+
 

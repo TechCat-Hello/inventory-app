@@ -9,6 +9,13 @@ from django.urls import reverse_lazy
 from django.db.models import Q
 from django.contrib import messages
 from django.utils import timezone
+from django.contrib.auth.models import User
+import csv
+from django.http import HttpResponse
+import openpyxl
+from openpyxl.utils import get_column_letter
+from django.template.loader import render_to_string
+from weasyprint import HTML
 
 
 @login_required
@@ -209,7 +216,120 @@ def all_rental_history_view(request):
         return HttpResponseForbidden("このページは管理者のみアクセス可能です。")
     
     rentals = Rental.objects.select_related('user', 'item').order_by('-rental_date')
-    return render(request, 'inventory/all_rental_history.html', {'rentals': rentals})
+
+    # フィルター用パラメータを取得
+    user_id = request.GET.get('user')
+    item_id = request.GET.get('item')
+    status = request.GET.get('status')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if user_id:
+        try:
+            user_id_int = int(user_id)
+            rentals = rentals.filter(user_id=user_id_int)
+        except ValueError:
+            pass
+
+    if item_id:
+        try:
+            item_id_int = int(item_id)
+            rentals = rentals.filter(item_id=item_id_int)
+        except ValueError:
+            pass
+
+    if status:
+        rentals = rentals.filter(status=status)
+    if start_date:
+        rentals = rentals.filter(rental_date__gte=start_date)
+    if end_date:
+        rentals = rentals.filter(rental_date__lte=end_date)
+
+    users = User.objects.all()
+    items = InventoryItem.objects.all()
+
+    return render(request, 'inventory/all_rental_history.html', {
+        'rentals': rentals,
+        'users': users,
+        'items': items,
+        'selected_user': user_id or '',
+        'selected_item': item_id or '',
+        'selected_status': status or '',
+        'start_date': start_date or '',
+        'end_date': end_date or '',
+    })
+
+def export_rentals_csv(request):
+    rentals = Rental.objects.filter(user=request.user)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="rental_history.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['アイテム名', '数量', '貸出日', '返却予定日', '返却日', 'ステータス'])
+
+    for rental in rentals:
+        writer.writerow([
+            rental.item.name,
+            rental.quantity,
+            rental.rental_date,
+            rental.expected_return_date,
+            rental.return_date or '未返却',
+            dict(Rental.STATUS_CHOICES).get(rental.status, rental.status),
+        ])
+
+    return response
+
+def export_rentals_excel(request):
+    rentals = Rental.objects.filter(user=request.user)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Rental History"
+
+    headers = ['アイテム名', '数量', '貸出日', '返却予定日', '返却日', 'ステータス']
+    ws.append(headers)
+
+    for rental in rentals:
+        ws.append([
+            rental.item.name,
+            rental.quantity,
+            rental.rental_date.strftime("%Y-%m-%d"),
+            rental.expected_return_date.strftime("%Y-%m-%d"),
+            rental.return_date.strftime("%Y-%m-%d") if rental.return_date else '未返却',
+            dict(Rental.STATUS_CHOICES).get(rental.status, rental.status),
+        ])
+
+    for i in range(1, len(headers)+1):
+        ws.column_dimensions[get_column_letter(i)].width = 20
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="rental_history.xlsx"'
+    wb.save(response)
+    return response
+
+def export_rentals_pdf(request):
+    rentals = Rental.objects.filter(user=request.user)
+
+    # レンダリング用のHTMLテンプレートに渡すコンテキスト
+    context = {
+        'rentals': rentals
+    }
+
+    # テンプレートをHTMLに変換
+    html_string = render_to_string('rental/rental_history_pdf.html', context)
+
+    # PDFに変換
+    html = HTML(string=html_string)
+    pdf = html.write_pdf()
+
+    # PDFをHTTPレスポンスとして返す
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="rental_history.pdf"'
+    return response
+
+
+
 
 
 

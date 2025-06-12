@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from inventory import views
+from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     path('admin_dashboard/', views.admin_dashboard_view, name='admin_dashboard'),
@@ -18,4 +19,9 @@ urlpatterns = [
     path('rentals/create/', views.rental_create, name='rental_create'),
     path('return_item/<int:rental_id>/', views.return_item, name='return_item'),
     path('admin_rentals/', views.all_rental_history_view, name='all_rental_history'),
+    path('all_rental_history/', views.all_rental_history_view, name='all_rental_history'),
+    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+    path('export/csv/', views.export_rentals_csv, name='export_rentals_csv'),
+    path('export/excel/', views.export_rentals_excel, name='export_rentals_excel'),
+    path('export/pdf/', views.export_rentals_pdf, name='export_rentals_pdf'),
 ]
