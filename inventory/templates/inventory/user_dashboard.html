@@ -3,26 +3,6 @@
 {% block title %}ユーザーダッシュボード{% endblock %}
 
 {% block content %}
-  <!-- メッセージ表示 -->
-  {% if messages %}
-  <div class="mt-3">
-    {% for message in messages %}
-      <div class="alert 
-        {% if message.tags == 'error' %}
-          alert-danger
-        {% elif message.tags == 'warning' %}
-          alert-warning
-        {% elif message.tags == 'success' %}
-          alert-success
-        {% else %}
-          alert-info
-        {% endif %}
-      " role="alert">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
-  {% endif %}
 
   <h1>ユーザーダッシュボード</h1>
   <p>ようこそ、{{ request.user.username }}さん（一般ユーザー）</p>

@@ -8,6 +8,89 @@
 
   <p><a href="/admin/" target="_blank">▶ 管理画面へ</a></p>
   <p><a href="{% url 'all_rental_history' %}">▶ 全ユーザーの貸出履歴を見る</a></p>
+
+  <h2 style="margin-top: 40px;">全ユーザーの貸出台数の月別推移</h2>
+  <canvas id="monthlyRentalChart" width="800" height="400"></canvas>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    const ctx = document.getElementById('monthlyRentalChart').getContext('2d');
+    const monthlyRentalChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels|safe }},  // 例: ["2025-01", "2025-02", ...]
+            datasets: [{
+                label: '貸出台数',
+                data: {{ data|safe }},   // 例: [12, 15, 9, ...]
+                backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: '貸出台数'
+                    }
+                },
+                x: {
+                    title: {
+                      display: true,
+                      text: '年月'
+                    }
+                }
+            }
+        }
+    });
+  </script>
+
+  <h2>品目別 月別貸出台数</h2>
+<canvas id="rentalChart" width="800" height="400"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('rentalChart').getContext('2d');
+  const rentalChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: {{ labels|safe }},
+          datasets: {{ datasets|safe }},
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              title: {
+                  display: true,
+              },
+              legend: {
+                  position: 'top',
+              },
+          },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  title: {
+                      display: true,
+                      text: '貸出台数'
+                  }
+              },
+              x: {
+                  title: {
+                      display: true,
+                      text: '年月'
+                  }
+              }
+          }
+      }
+  });
+</script>
+
 {% endblock %}
 
 

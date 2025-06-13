@@ -1,6 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+import datetime
 
+
+def default_rental_date():
+    return timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
 class InventoryItem(models.Model):
     name = models.CharField(max_length=100)
@@ -23,15 +28,16 @@ class Rental(models.Model):
     ]
 
     item = models.ForeignKey('InventoryItem', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField() 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    rental_date = models.DateField(auto_now_add=True)
+    quantity = models.PositiveIntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  
     expected_return_date = models.DateField(null=False, blank=False)
-    return_date = models.DateField(null=True, blank=True)
+    rental_date = models.DateTimeField(default=timezone.now)
+    return_date = models.DateField(null=True, blank=True) 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='borrowed')
 
     def __str__(self):
-        return f"{self.item.name} : {self.user.username} : {self.rental_date.strftime('%Y/%m/%d')} :（{self.get_status_display()}）"
+        # 時刻も含めて表示
+        return f"{self.item.name} : {self.user.username} : {self.rental_date.strftime('%Y/%m/%d %H:%M')} :（{self.get_status_display()}）"
     
 class ReturnLog(models.Model):
     rental = models.ForeignKey('Rental', on_delete=models.CASCADE, related_name='return_logs')

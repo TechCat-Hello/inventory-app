@@ -17,11 +17,67 @@ from openpyxl.utils import get_column_letter
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models.functions import TruncMonth
+from django.db.models import Count
+from django.utils.timezone import now, localtime
+import calendar
+from collections import defaultdict
 
+# 一般ユーザー判定関数
+def is_general_user(user):
+    return user.is_authenticated and not user.is_staff
+
+# 管理者判定関数
+def is_admin(user):
+    return user.is_superuser or user.is_staff
 
 @login_required
+@user_passes_test(is_admin)
 def admin_dashboard_view(request):
-    return render(request, 'inventory/admin_dashboard.html')
+    # 全レンタルデータを取得
+    rentals = Rental.objects.select_related('item').all()
+
+    # 品目ごとの月別データを収集
+    monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 数}}
+    all_months_set = set()
+    all_items_set = set()
+
+    for rental in rentals:
+        # 月（例: 2025-03）
+        month = rental.rental_date.strftime('%Y-%m')
+        item_name = rental.item.name
+        monthly_data[month][item_name] += 1
+        all_months_set.add(month)
+        all_items_set.add(item_name)
+
+    labels = sorted(all_months_set)  # ['2025-03', '2025-04', ...]
+    item_names = sorted(all_items_set)
+
+    # カラーパレット（色数追加可能）
+    color_palette = [
+        'rgba(255, 99, 132, 0.7)',
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 206, 86, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)',
+        'rgba(255, 159, 64, 0.7)',
+    ]
+
+    datasets = []
+    for idx, item_name in enumerate(item_names):
+        data = [monthly_data[month].get(item_name, 0) for month in labels]
+        datasets.append({
+            'label': item_name,
+            'data': data,
+            'backgroundColor': color_palette[idx % len(color_palette)],
+            'borderColor': color_palette[idx % len(color_palette)].replace('0.7', '1'),
+            'borderWidth': 1,
+        })
+
+    return render(request, 'inventory/admin_dashboard.html', {
+        'labels': labels,
+        'datasets': datasets,
+    })
 
 @login_required
 def user_dashboard_view(request):
@@ -30,9 +86,24 @@ def user_dashboard_view(request):
     # 自分が借りた貸出データ
     rentals = Rental.objects.filter(user=request.user).select_related('item')
 
+    monthly_counts = rentals.annotate(month=TruncMonth('rental_date')) \
+                            .values('month') \
+                            .annotate(count=Count('id')) \
+                            .order_by('month')
+    
+    # ラベル（月）とデータ（件数）を生成
+    labels = []
+    data = []
+    for entry in monthly_counts:
+        month_name = calendar.month_name[entry['month'].month]  # e.g. 'January'
+        labels.append(month_name)
+        data.append(entry['count'])
+
     return render(request, 'inventory/user_dashboard.html', {
         'items': items,
         'rentals': rentals, 
+        'labels': labels,
+        'data': data,
     })
 
 @login_required
@@ -41,10 +112,6 @@ def redirect_after_login(request):
         return redirect('admin_dashboard')  # URL名で指定
     else:
         return redirect('user_dashboard')
-    
-# 一般ユーザー判定関数
-def is_general_user(user):
-    return user.is_authenticated and not user.is_staff
 
 # 一覧表示ビュー
 @login_required
@@ -407,3 +474,27 @@ def export_all_rentals_pdf(request):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="all_rental_history.pdf"'
     return response
+
+def get_monthly_rental_data(user):
+    # 管理者は全件、一般ユーザーは自分の貸出のみ集計
+    if user.is_staff:
+        rentals = Rental.objects.all()
+    else:
+        rentals = Rental.objects.filter(user=user)
+
+    # 月ごとの貸出台数を集計
+    monthly_counts = rentals.annotate(month=TruncMonth('rental_date')) \
+                            .values('month') \
+                            .annotate(count=Count('id')) \
+                            .order_by('month')
+
+    # グラフ用のラベル・データを生成
+    labels = []
+    data = []
+
+    for entry in monthly_counts:
+        month_name = calendar.month_name[entry['month'].month]
+        labels.append(month_name)
+        data.append(entry['count'])
+
+    return labels, data
