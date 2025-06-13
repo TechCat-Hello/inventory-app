@@ -16,6 +16,7 @@ import openpyxl
 from openpyxl.utils import get_column_letter
 from django.template.loader import render_to_string
 from weasyprint import HTML
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 @login_required
@@ -259,6 +260,7 @@ def all_rental_history_view(request):
         'end_date': end_date or '',
     })
 
+@login_required
 def export_rentals_csv(request):
     rentals = Rental.objects.filter(user=request.user)
 
@@ -282,6 +284,7 @@ def export_rentals_csv(request):
 
     return response
 
+@login_required
 def export_rentals_excel(request):
     rentals = Rental.objects.filter(user=request.user)
 
@@ -310,6 +313,7 @@ def export_rentals_excel(request):
     wb.save(response)
     return response
 
+@login_required
 def export_rentals_pdf(request):
     rentals = Rental.objects.filter(user=request.user)
 
@@ -331,11 +335,75 @@ def export_rentals_pdf(request):
     response['Content-Disposition'] = 'attachment; filename="rental_history.pdf"'
     return response
 
+@staff_member_required
+def export_all_rentals_csv(request):
+    rentals = Rental.objects.select_related('user', 'item').all()
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="all_rental_history.csv"'
+    response.write('\ufeff')  
+
+    writer = csv.writer(response)
+    writer.writerow(['ユーザー名', 'アイテム名', '数量', '貸出日', '返却予定日', '返却日', 'ステータス'])
+
+    for rental in rentals:
+        writer.writerow([
+            rental.user.username,
+            rental.item.name,
+            rental.quantity,
+            rental.rental_date.strftime("%Y/%m/%d") if rental.rental_date else '',
+            rental.expected_return_date.strftime("%Y/%m/%d") if rental.expected_return_date else '',
+            rental.return_date.strftime("%Y/%m/%d") if rental.return_date else '未返却',
+            dict(Rental.STATUS_CHOICES).get(rental.status, rental.status),
+        ])
+
+    return response
 
 
+@staff_member_required
+def export_all_rentals_excel(request):
+    rentals = Rental.objects.select_related('user', 'item').all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "All Rental History"
+
+    headers = ['ユーザー名', 'アイテム名', '数量', '貸出日', '返却予定日', '返却日', 'ステータス']
+    ws.append(headers)
+
+    for rental in rentals:
+        ws.append([
+            rental.user.username,
+            rental.item.name,
+            rental.quantity,
+            rental.rental_date.strftime("%Y/%m/%d") if rental.rental_date else '',
+            rental.expected_return_date.strftime("%Y/%m/%d") if rental.expected_return_date else '',
+            rental.return_date.strftime("%Y/%m/%d") if rental.return_date else '未返却',
+            dict(Rental.STATUS_CHOICES).get(rental.status, rental.status),
+        ])
+
+    for i in range(1, len(headers) + 1):
+        ws.column_dimensions[get_column_letter(i)].width = 20
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="all_rental_history.xlsx"'
+    wb.save(response)
+    return response
 
 
+@staff_member_required
+def export_all_rentals_pdf(request):
+    rentals = Rental.objects.select_related('user', 'item').all()
 
+    context = {
+        'rentals': rentals,
+        'current_user': request.user,
+    }
 
+    html_string = render_to_string('inventory/all_rentals_pdf.html', context)
+    html = HTML(string=html_string)
+    pdf = html.write_pdf()
 
-
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="all_rental_history.pdf"'
+    return response

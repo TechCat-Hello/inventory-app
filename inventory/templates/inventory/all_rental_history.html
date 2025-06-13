@@ -112,8 +112,15 @@
     </tbody>
 </table>
 
+<h3 style="margin-top: 30px;">貸出履歴ダウンロード</h3>
+  <ul>
+      <li><a href="{% url 'export_all_rentals_csv' %}">CSV形式でダウンロード</a></li>
+      <li><a href="{% url 'export_all_rentals_excel' %}">Excel形式でダウンロード</a></li>
+      <li><a href="{% url 'export_all_rentals_pdf' %}">PDF形式でダウンロード</a></li>
+  </ul>
+
 <p style="margin-top: 20px;">
-    <a href="{% url 'user_dashboard' %}" style="color: blue; text-decoration: underline;">← ユーザーダッシュボードに戻る</a>
+    <a href="{% url 'admin_dashboard' %}" style="color: blue; text-decoration: underline;">← 管理者ダッシュボードに戻る</a>
 </p>
 
 {% endblock %}
