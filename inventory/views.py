@@ -74,9 +74,13 @@ def admin_dashboard_view(request):
             'borderWidth': 1,
         })
 
+    # 全ユーザーの月別貸出台数合計
+    monthly_total_counts = [sum(monthly_data[month].values()) for month in labels]
+
     return render(request, 'inventory/admin_dashboard.html', {
         'labels': labels,
         'datasets': datasets,
+        'data': monthly_total_counts,
     })
 
 @login_required

@@ -16,8 +16,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script>
-    const ctx = document.getElementById('monthlyRentalChart').getContext('2d');
-    const monthlyRentalChart = new Chart(ctx, {
+    const ctxMonthly = document.getElementById('monthlyRentalChart').getContext('2d');
+    const monthlyRentalChart = new Chart(ctxMonthly, {
         type: 'bar',
         data: {
             labels: {{ labels|safe }},  // 例: ["2025-01", "2025-02", ...]
@@ -53,10 +53,10 @@
   <h2>品目別 月別貸出台数</h2>
 <canvas id="rentalChart" width="800" height="400"></canvas>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
 <script>
-  const ctx = document.getElementById('rentalChart').getContext('2d');
-  const rentalChart = new Chart(ctx, {
+  const ctxItem = document.getElementById('rentalChart').getContext('2d');
+  const rentalChart = new Chart(ctxItem, {
       type: 'bar',
       data: {
           labels: {{ labels|safe }},
