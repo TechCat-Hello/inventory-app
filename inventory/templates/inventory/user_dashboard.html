@@ -84,6 +84,59 @@
       <li><a href="{% url 'export_rentals_pdf' %}">PDF形式でダウンロード</a></li>
   </ul>
 
+  <h2>あなたの貸出台数の月別推移（合計）</h2>
+  <canvas id="monthlyRentalChart" width="800" height="400"></canvas>
+
+  <h2>あなたの貸出台数の品目別 月別推移</h2>
+  <canvas id="rentalChart" width="800" height="400"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    // 月別貸出台数合計グラフ
+    const ctxMonthly = document.getElementById('monthlyRentalChart').getContext('2d');
+    const monthlyRentalChart = new Chart(ctxMonthly, {
+        type: 'bar',
+        data: {
+            labels: {{ labels|safe }},
+            datasets: [{
+                label: '貸出台数合計',
+                data: {{ data|safe }},
+                backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: '貸出台数' } },
+                x: { title: { display: true, text: '年月' } }
+            }
+        }
+    });
+
+    // 品目別 月別貸出台数グラフ
+    const ctxItem = document.getElementById('rentalChart').getContext('2d');
+    const rentalChart = new Chart(ctxItem, {
+        type: 'bar',
+        data: {
+            labels: {{ labels|safe }},
+            datasets: {{ datasets|safe }},
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+            },
+            scales: {
+                y: { beginAtZero: true, title: { display: true, text: '貸出台数' } },
+                x: { title: { display: true, text: '年月' } }
+            }
+        }
+    });
+  </script>
+
 {% endblock %}
 
 

@@ -90,24 +90,51 @@ def user_dashboard_view(request):
     # 自分が借りた貸出データ
     rentals = Rental.objects.filter(user=request.user).select_related('item')
 
-    monthly_counts = rentals.annotate(month=TruncMonth('rental_date')) \
-                            .values('month') \
-                            .annotate(count=Count('id')) \
-                            .order_by('month')
-    
-    # ラベル（月）とデータ（件数）を生成
-    labels = []
-    data = []
-    for entry in monthly_counts:
-        month_name = calendar.month_name[entry['month'].month]  # e.g. 'January'
-        labels.append(month_name)
-        data.append(entry['count'])
+   # 品目ごとの月別データを収集
+    monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 数}}
+    all_months_set = set()
+    all_items_set = set()
+
+    for rental in rentals:
+        month = rental.rental_date.strftime('%Y-%m')  # 年月フォーマット
+        item_name = rental.item.name
+        monthly_data[month][item_name] += 1
+        all_months_set.add(month)
+        all_items_set.add(item_name)
+
+    labels = sorted(all_months_set)
+    item_names = sorted(all_items_set)
+
+    # カラーパレット（管理者ビューと同じものを利用可）
+    color_palette = [
+        'rgba(255, 99, 132, 0.7)',
+        'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 206, 86, 0.7)',
+        'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)',
+        'rgba(255, 159, 64, 0.7)',
+    ]
+
+    datasets = []
+    for idx, item_name in enumerate(item_names):
+        data = [monthly_data[month].get(item_name, 0) for month in labels]
+        datasets.append({
+            'label': item_name,
+            'data': data,
+            'backgroundColor': color_palette[idx % len(color_palette)],
+            'borderColor': color_palette[idx % len(color_palette)].replace('0.7', '1'),
+            'borderWidth': 1,
+        })
+
+    # 月別貸出台数合計
+    monthly_total_counts = [sum(monthly_data[month].values()) for month in labels]
 
     return render(request, 'inventory/user_dashboard.html', {
-        'items': items,
-        'rentals': rentals, 
         'labels': labels,
-        'data': data,
+        'datasets': datasets,
+        'data': monthly_total_counts,
+        'rentals': rentals,
+        'items': items,
     })
 
 @login_required
@@ -497,8 +524,8 @@ def get_monthly_rental_data(user):
     data = []
 
     for entry in monthly_counts:
-        month_name = calendar.month_name[entry['month'].month]
-        labels.append(month_name)
+        month_label = entry['month'].strftime('%Y-%m')
+        labels.append(month_label)
         data.append(entry['count'])
 
     return labels, data
