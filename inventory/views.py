@@ -43,7 +43,7 @@ def admin_dashboard_view(request):
     all_items_set = set()
 
     for rental in rentals:
-        # 月（例: 2025-03）
+        
         month = rental.rental_date.strftime('%Y-%m')
         item_name = rental.item.name
         monthly_data[month][item_name] += 1
@@ -105,7 +105,7 @@ def user_dashboard_view(request):
     labels = sorted(all_months_set)
     item_names = sorted(all_items_set)
 
-    # カラーパレット（管理者ビューと同じものを利用可）
+    # カラーパレット
     color_palette = [
         'rgba(255, 99, 132, 0.7)',
         'rgba(54, 162, 235, 0.7)',
@@ -140,7 +140,7 @@ def user_dashboard_view(request):
 @login_required
 def redirect_after_login(request):
     if request.user.is_staff:
-        return redirect('admin_dashboard')  # URL名で指定
+        return redirect('admin_dashboard')  
     else:
         return redirect('user_dashboard')
 
@@ -231,7 +231,7 @@ def edit_item(request, pk):
         form = InventoryItemForm(request.POST, instance=item)
         if form.is_valid():
             form.save()
-            return redirect('user_dashboard')  # または 'item_detail', args=[item.pk]
+            return redirect('user_dashboard') 
     else:
         form = InventoryItemForm(instance=item)
 
@@ -295,7 +295,7 @@ def return_item(request, rental_id):
         if rental.quantity > 1:
             rental.quantity -= 1
             rental.save()
-            # 返却履歴を作成
+            
             ReturnLog.objects.create(rental=rental, returned_quantity=1, returned_by=request.user)
             messages.success(request, f"{rental.item.name}を1個返却しました。残り{rental.quantity}個貸出中です。")
         else:
@@ -303,7 +303,7 @@ def return_item(request, rental_id):
             rental.status = 'returned'
             rental.return_date = timezone.now().date()
             rental.save()
-            # 最後の返却履歴も作成
+            
             ReturnLog.objects.create(rental=rental, returned_quantity=1, returned_by=request.user)
             messages.success(request, f"{rental.item.name}をすべて返却しました。")
 
