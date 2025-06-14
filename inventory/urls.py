@@ -27,4 +27,5 @@ urlpatterns = [
     path('export_all_rentals/csv/', views.export_all_rentals_csv, name='export_all_rentals_csv'),
     path('export_all_rentals/excel/', views.export_all_rentals_excel, name='export_all_rentals_excel'),
     path('export_all_rentals/pdf/', views.export_all_rentals_pdf, name='export_all_rentals_pdf'),
+    path('', views.home, name='home'),
 ]
