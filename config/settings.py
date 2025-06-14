@@ -12,10 +12,13 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY is not set in environment variables")
 
-DEBUG = True
-#DEBUG = config('DEBUG', default=False, cast=bool)    本番用
+DEBUG = config('DEBUG', default=False, cast=bool)    
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
+
+# Renderの環境変数でホスト名が渡される場合も考慮
+if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
+    ALLOWED_HOSTS.append(os.environ['RENDER_EXTERNAL_HOSTNAME'])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -60,13 +63,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(default=config('DATABASE_URL'), conn_max_age=600)
 }
 
-#本番用
+
 # EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 # EMAIL_HOST = config('EMAIL_HOST', default='')
 # EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
@@ -101,12 +101,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"] 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/redirect/'
-#LOGIN_REDIRECT_URL = '/dashboard_redirect/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
