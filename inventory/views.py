@@ -22,6 +22,8 @@ from django.db.models import Count
 from django.utils.timezone import now, localtime
 import calendar
 from collections import defaultdict
+from django.views import View
+
 
 # 一般ユーザー判定関数
 def is_general_user(user):
@@ -537,3 +539,10 @@ def home(request):
         else:
             return redirect('login')  
     return redirect('login') 
+
+class SignupView(View):
+    def dispatch(self, request, *args, **kwargs):
+        if not settings.DEBUG:
+            return HttpResponseForbidden("本番環境では新規登録できません。")
+        return super().dispatch(request, *args, **kwargs)
+    
