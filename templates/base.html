@@ -59,7 +59,12 @@
     {% if user.is_authenticated %}
       <div class="logout-section">
         ログイン中：{{ user.username }} |
-        <a href="{% url 'logout' %}">ログアウト</a>
+        <form method="post" action="{% url 'logout' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:blue;cursor:pointer;padding:0;text-decoration:underline;">
+          ログアウト
+        </button>
+      </form>
       </div>
     {% endif %}
   </header>
