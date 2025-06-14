@@ -3,58 +3,67 @@
 {% block title %}管理者ダッシュボード{% endblock %}
 
 {% block content %}
-  <h1>管理者ダッシュボード</h1>
-  <p>ようこそ、{{ request.user.username }}さん（管理者）</p>
+<div style="max-width: 1000px; margin: 0 auto; padding: 2rem;">
 
-  <p><a href="/admin/" target="_blank">▶ 管理画面へ</a></p>
-  <p><a href="{% url 'all_rental_history' %}">▶ 全ユーザーの貸出履歴を見る</a></p>
+  <h1 style="font-size: 2rem; font-weight: bold; margin-bottom: 1rem;">管理者ダッシュボード</h1>
+  <p style="margin-bottom: 1.5rem;">ようこそ、<strong>{{ request.user.username }}</strong> さん（管理者）</p>
 
-  <h2 style="margin-top: 40px;">全ユーザーの貸出台数の月別推移</h2>
-  <canvas id="monthlyRentalChart" width="800" height="400"></canvas>
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+    <a href="/admin/" target="_blank" style="padding: 0.5rem 1rem; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px;">▶ 管理画面へ</a>
+    <a href="{% url 'all_rental_history' %}" style="padding: 0.5rem 1rem; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px;">▶ 全ユーザーの貸出履歴を見る</a>
+  </div>
 
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- 月別貸出台数グラフ -->
+  <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
+    <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;">📊 全ユーザーの貸出台数（月別）</h2>
+    <canvas id="monthlyRentalChart" height="300"></canvas>
+  </div>
 
-  <script>
-    const ctxMonthly = document.getElementById('monthlyRentalChart').getContext('2d');
-    const monthlyRentalChart = new Chart(ctxMonthly, {
-        type: 'bar',
-        data: {
-            labels: {{ labels|safe }},  // 例: ["2025-01", "2025-02", ...]
-            datasets: [{
-                label: '貸出台数',
-                data: {{ data|safe }},   // 例: [12, 15, 9, ...]
-                backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
+  <!-- 品目別月別貸出台数 -->
+  <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
+    <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;">📦 品目別 月別貸出台数</h2>
+    <canvas id="rentalChart" height="300"></canvas>
+  </div>
+
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const ctxMonthly = document.getElementById('monthlyRentalChart').getContext('2d');
+  const monthlyRentalChart = new Chart(ctxMonthly, {
+      type: 'bar',
+      data: {
+          labels: {{ labels|safe }},
+          datasets: [{
+              label: '貸出台数',
+              data: {{ data|safe }},
+              backgroundColor: 'rgba(54, 162, 235, 0.7)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1
+          }]
+      },
+      options: {
+          responsive: true,
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  title: {
                       display: true,
                       text: '貸出台数'
-                    }
-                },
-                x: {
-                    title: {
+                  }
+              },
+              x: {
+                  title: {
                       display: true,
                       text: '年月'
-                    }
-                }
-            }
-        }
-    });
-  </script>
+                  }
+              }
+          }
+      }
+  });
 
-  <h2>品目別 月別貸出台数</h2>
-<canvas id="rentalChart" width="800" height="400"></canvas>
-
-<!--<script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
-<script>
   const ctxItem = document.getElementById('rentalChart').getContext('2d');
   const rentalChart = new Chart(ctxItem, {
       type: 'bar',
@@ -65,12 +74,8 @@
       options: {
           responsive: true,
           plugins: {
-              title: {
-                  display: true,
-              },
-              legend: {
-                  position: 'top',
-              },
+              legend: { position: 'top' },
+              title: { display: false }
           },
           scales: {
               y: {
@@ -90,7 +95,5 @@
       }
   });
 </script>
-
 {% endblock %}
-
 

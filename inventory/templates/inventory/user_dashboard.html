@@ -5,16 +5,17 @@
 {% block content %}
 <div class="container py-4">
   <h1 class="mb-4">ユーザーダッシュボード</h1>
+  <p>ようこそ、<strong>{{ request.user.username }}</strong> さん（一般ユーザー）</p>
+
   <div class="mb-4">
-    <p>ようこそ、<strong>{{ request.user.username }}</strong> さん（一般ユーザー）</p>
-    <a href="{% url 'item_list' %}" class="btn btn-primary btn-sm me-2">備品一覧を確認・借りる</a>
-    <a href="{% url 'item_create' %}" class="btn btn-success btn-sm">新しい備品を登録する</a>
+    <a href="{% url 'item_list' %}" class="btn btn-primary btn-sm me-2">▶ 備品一覧を確認・借りる</a>
+    <a href="{% url 'item_create' %}" class="btn btn-success btn-sm">＋ 新しい備品を登録する</a>
   </div>
 
   <!-- 貸出中の備品一覧 -->
-  <div class="card mb-5">
+  <div class="card mb-5 shadow-sm">
     <div class="card-header bg-info text-white">
-      あなたの貸出中の備品一覧
+      <h2 class="h5 mb-0">貸出中の備品一覧</h2>
     </div>
     <div class="card-body">
       <div class="table-responsive">
@@ -43,7 +44,7 @@
                   {% if rental.status == 'borrowed' and rental.quantity > 0 %}
                     <form method="post" action="{% url 'return_item' rental.id %}" class="d-inline">
                       {% csrf_token %}
-                      <button type="submit" class="btn btn-sm btn-primary nowrap-btn">1個返却</button>
+                      <button type="submit" class="btn btn-sm btn-outline-primary nowrap-btn">1個返却</button>
                     </form>
                   {% else %}
                     <span class="text-muted">返却済</span>
@@ -60,9 +61,9 @@
   </div>
 
   <!-- 登録備品一覧 -->
-  <div class="card mb-5">
+  <div class="card mb-5 shadow-sm">
     <div class="card-header bg-secondary text-white">
-      あなたが登録した備品一覧
+      <h2 class="h5 mb-0">登録済み備品一覧</h2>
     </div>
     <div class="card-body">
       <ul class="list-group">
@@ -70,10 +71,8 @@
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>{{ item.name }}（{{ item.quantity }}個）</span>
             <span>
-              {% if item.added_by == request.user %}
-                <a href="{% url 'edit_item' item.pk %}" class="btn btn-sm btn-outline-secondary me-2">編集</a>
-                <a href="{% url 'item_delete' item.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
-              {% endif %}
+              <a href="{% url 'edit_item' item.pk %}" class="btn btn-sm btn-outline-secondary me-2">編集</a>
+              <a href="{% url 'item_delete' item.pk %}" class="btn btn-sm btn-outline-danger">削除</a>
             </span>
           </li>
         {% empty %}
@@ -83,25 +82,29 @@
     </div>
   </div>
 
-  <!-- ダウンロードリンク -->
-  <div class="mb-5">
-    <h3>貸出履歴ダウンロード</h3>
-    <ul>
-      <li><a href="{% url 'export_rentals_csv' %}">CSV形式でダウンロード</a></li>
-      <li><a href="{% url 'export_rentals_excel' %}">Excel形式でダウンロード</a></li>
-      <li><a href="{% url 'export_rentals_pdf' %}">PDF形式でダウンロード</a></li>
-    </ul>
+  <!-- ダウンロード -->
+  <div class="card mb-5 shadow-sm">
+    <div class="card-header bg-light">
+      <h2 class="h5 mb-0">貸出履歴ダウンロード</h2>
+    </div>
+    <div class="card-body">
+      <ul class="list-unstyled">
+        <li><a href="{% url 'export_rentals_csv' %}">CSV形式でダウンロード</a></li>
+        <li><a href="{% url 'export_rentals_excel' %}">Excel形式でダウンロード</a></li>
+        <li><a href="{% url 'export_rentals_pdf' %}">PDF形式でダウンロード</a></li>
+      </ul>
+    </div>
   </div>
 
   <!-- グラフ -->
-  <div class="row">
-    <div class="col-md-6 mb-4">
-      <h4 class="text-center">月別貸出台数合計</h4>
-      <canvas id="monthlyRentalChart" width="100%" height="300"></canvas>
+  <div>
+    <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
+      <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; text-align: center;">📊 月別貸出台数合計</h2>
+      <canvas id="monthlyRentalChart" height="300"></canvas>
     </div>
-    <div class="col-md-6 mb-4">
-      <h4 class="text-center">品目別 月別貸出台数</h4>
-      <canvas id="rentalChart" width="100%" height="300"></canvas>
+    <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
+      <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; text-align: center;">📦 品目別 月別貸出台数</h2>
+      <canvas id="rentalChart" height="300"></canvas>
     </div>
   </div>
 
@@ -151,6 +154,7 @@
   </script>
 </div>
 {% endblock %}
+
 
 
 
