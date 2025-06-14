@@ -2,11 +2,8 @@ services:
   - type: web
     name: inventory-app
     env: python
-    buildCommand: |
-      pip install -r requirements.txt
-      python manage.py migrate
-      python manage.py collectstatic --noinput
-    startCommand: gunicorn config.wsgi:application
+    buildCommand:  "pip install -r requirements.txt"
+    startCommand: "./manage.py migrate && gunicorn config.wsgi:application"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
