@@ -9,6 +9,11 @@ class InventoryItemAdmin(admin.ModelAdmin):
     list_filter = ('category', 'is_available')
     readonly_fields = ('added_by',)  # 表示のみ（編集不可）
 
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.added_by = request.user
+        obj.save()
+
 @admin.register(Rental)
 class RentalAdmin(admin.ModelAdmin):
     list_display = ('item', 'user', 'quantity', 'status', 'rental_date', 'expected_return_date', 'return_date')
