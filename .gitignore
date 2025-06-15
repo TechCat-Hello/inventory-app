@@ -8,7 +8,6 @@ venv/
 *.log
 db.sqlite3
 /media
-/staticfiles
 *.env
 .env
 .DS_Store
