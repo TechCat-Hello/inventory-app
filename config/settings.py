@@ -14,7 +14,7 @@ if not SECRET_KEY:
 
 DEBUG = config('DEBUG', default=False, cast=bool)    
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
+ALLOWED_HOSTS = ['inventory-app-x0qh.onrender.com', 'localhost', '127.0.0.1']
 
 # Renderの環境変数でホスト名が渡される場合も考慮
 if 'RENDER_EXTERNAL_HOSTNAME' in os.environ:
