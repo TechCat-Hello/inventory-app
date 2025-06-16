@@ -18,7 +18,7 @@ from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models.functions import TruncMonth
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.utils.timezone import now, localtime
 import calendar
 from collections import defaultdict
@@ -92,22 +92,24 @@ def user_dashboard_view(request):
     # 自分が借りた貸出データ
     rentals = Rental.objects.filter(user=request.user).select_related('item')
 
-   # 品目ごとの月別データを収集
-    monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 数}}
+    # 品目ごとの月別貸出台数（quantityで集計）
+    monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 台数}}
     all_months_set = set()
     all_items_set = set()
 
     for rental in rentals:
-        month = rental.rental_date.strftime('%Y-%m')  # 年月フォーマット
+        month = rental.rental_date.strftime('%Y-%m')  # 例: '2025-06'
         item_name = rental.item.name
-        monthly_data[month][item_name] += 1
+        quantity = rental.quantity
+        monthly_data[month][item_name] += quantity 
         all_months_set.add(month)
         all_items_set.add(item_name)
 
+    # x軸ラベルと品目名一覧をソート
     labels = sorted(all_months_set)
     item_names = sorted(all_items_set)
 
-    # カラーパレット
+    # カラーパレット（品目が6種を超えても色が繰り返される）
     color_palette = [
         'rgba(255, 99, 132, 0.7)',
         'rgba(54, 162, 235, 0.7)',
@@ -115,8 +117,13 @@ def user_dashboard_view(request):
         'rgba(75, 192, 192, 0.7)',
         'rgba(153, 102, 255, 0.7)',
         'rgba(255, 159, 64, 0.7)',
+        'rgba(199, 199, 199, 0.7)',
+        'rgba(83, 102, 255, 0.7)',
+        'rgba(255, 102, 255, 0.7)',
+        'rgba(102, 255, 204, 0.7)',
     ]
 
+    # Chart.js 用 datasets
     datasets = []
     for idx, item_name in enumerate(item_names):
         data = [monthly_data[month].get(item_name, 0) for month in labels]
@@ -128,7 +135,7 @@ def user_dashboard_view(request):
             'borderWidth': 1,
         })
 
-    # 月別貸出台数合計
+    # 月別貸出台数合計（全品目合計）
     monthly_total_counts = [sum(monthly_data[month].values()) for month in labels]
 
     return render(request, 'inventory/user_dashboard.html', {
@@ -509,28 +516,49 @@ def export_all_rentals_pdf(request):
     return response
 
 def get_monthly_rental_data(user):
-    # 管理者は全件、一般ユーザーは自分の貸出のみ集計
     if user.is_staff:
         rentals = Rental.objects.all()
     else:
         rentals = Rental.objects.filter(user=user)
 
-    # 月ごとの貸出台数を集計
-    monthly_counts = rentals.annotate(month=TruncMonth('rental_date')) \
+    # 月ごとの貸出台数（全体合計）
+    monthly_totals = rentals.annotate(month=TruncMonth('rental_date')) \
                             .values('month') \
-                            .annotate(count=Count('id')) \
+                            .annotate(total_quantity=Sum('quantity')) \
                             .order_by('month')
 
-    # グラフ用のラベル・データを生成
     labels = []
     data = []
-
-    for entry in monthly_counts:
+    for entry in monthly_totals:
         month_label = entry['month'].strftime('%Y-%m')
         labels.append(month_label)
-        data.append(entry['count'])
+        data.append(entry['total_quantity'])
 
-    return labels, data
+    # 品目別・月別貸出台数
+    item_month_data = rentals.annotate(month=TruncMonth('rental_date')) \
+                             .values('item__name', 'month') \
+                             .annotate(total_quantity=Sum('quantity')) \
+                             .order_by('month')
+
+    # 月ラベルを固定し、品目ごとに対応する貸出台数を格納
+    item_data = defaultdict(lambda: [0] * len(labels))
+    month_index = {label: i for i, label in enumerate(labels)}
+
+    for entry in item_month_data:
+        item_name = entry['item__name']
+        month_label = entry['month'].strftime('%Y-%m')
+        idx = month_index.get(month_label)
+        if idx is not None:
+            item_data[item_name][idx] = entry['total_quantity']
+
+    # Chart.js 用 datasets 形式に変換
+    datasets = [{
+        'label': item,
+        'data': quantities,
+        'backgroundColor': f'rgba({(i * 50) % 255}, {(i * 80) % 255}, {(i * 110) % 255}, 0.6)'
+    } for i, (item, quantities) in enumerate(item_data.items())]
+
+    return labels, data, datasets
 
 def home(request):
     if request.user.is_authenticated:
