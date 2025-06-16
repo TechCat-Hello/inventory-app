@@ -129,6 +129,7 @@
         scales: {
           y: {
             beginAtZero: true,
+            suggestedMax: Math.max(...{{ data|safe }}) + 1,
             title: { display: true, text: '貸出台数' },
             ticks: {
               callback: function(value) {
@@ -141,6 +142,9 @@
         }
       }
     });
+
+    const allData = {{ datasets|safe }}.flatMap(ds => ds.data);
+    const maxVal = Math.max(...allData);
 
     const ctxItem = document.getElementById('rentalChart').getContext('2d');
     new Chart(ctxItem, {
@@ -157,6 +161,7 @@
         scales: {
           y: {
             beginAtZero: true,
+            suggestedMax: maxVal + 1,
             title: { display: true, text: '貸出台数' },
             ticks: {
               callback: function(value) {
@@ -172,3 +177,4 @@
   </script>
 </div>
 {% endblock %}
+
