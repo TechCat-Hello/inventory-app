@@ -91,18 +91,32 @@ def user_dashboard_view(request):
     items = InventoryItem.objects.filter(added_by=request.user)
     # 自分が借りた貸出データ
     rentals = Rental.objects.filter(user=request.user).select_related('item')
+    # 自分が返却したデータ
+    returns = Return.objects.filter(user=request.user).select_related('item')
 
     # 品目ごとの月別貸出台数（quantityで集計）
     monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 台数}}
     all_months_set = set()
     all_items_set = set()
 
+    # 貸出データ処理
     for rental in rentals:
         month = rental.rental_date.strftime('%Y-%m')  # 例: '2025-06'
         item_name = rental.item.name
         quantity = rental.quantity
         monthly_data[month][item_name] += quantity 
         all_months_set.add(month)
+        all_items_set.add(item_name)
+
+     # 返却データ処理（追加部分）
+    for return_obj in returns:
+        return_month = return_obj.return_date.strftime('%Y-%m')
+        item_name = return_obj.item.name
+        monthly_data[return_month][item_name] = max(
+            monthly_data[return_month][item_name] - return_obj.quantity, 
+            0
+        )
+        all_months_set.add(return_month)
         all_items_set.add(item_name)
 
     # x軸ラベルと品目名一覧をソート
