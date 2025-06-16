@@ -127,7 +127,16 @@
       options: {
         responsive: true,
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: '貸出台数' } },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: '貸出台数' },
+            ticks: {
+              callback: function(value) {
+                if (Number.isInteger(value)) return value;
+              },
+              stepSize: 1
+            }
+          },
           x: { title: { display: true, text: '年月' } }
         }
       }
@@ -146,7 +155,16 @@
           legend: { position: 'top' },
         },
         scales: {
-          y: { beginAtZero: true, title: { display: true, text: '貸出台数' } },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: '貸出台数' },
+            ticks: {
+              callback: function(value) {
+                if (Number.isInteger(value)) return value;
+              },
+              stepSize: 1
+            }
+          },
           x: { title: { display: true, text: '年月' } }
         }
       }
@@ -154,7 +172,3 @@
   </script>
 </div>
 {% endblock %}
-
-
-
-
