@@ -92,7 +92,10 @@ def user_dashboard_view(request):
     # 自分が借りた貸出データ
     rentals = Rental.objects.filter(user=request.user).select_related('item')
     # 自分が返却したデータ
-    returns = Return.objects.filter(user=request.user).select_related('item')
+    returns = Rental.objects.filter(
+        user=request.user,
+        return_date__isnull=False  # 返却日が登録されているデータのみ取得
+    ).select_related('item')
 
     # 品目ごとの月別貸出台数（quantityで集計）
     monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 台数}}
@@ -101,24 +104,23 @@ def user_dashboard_view(request):
 
     # 貸出データ処理
     for rental in rentals:
-        month = rental.rental_date.strftime('%Y-%m')  # 例: '2025-06'
+        month = rental.rental_date.strftime('%Y-%m')
         item_name = rental.item.name
-        quantity = rental.quantity
-        monthly_data[month][item_name] += quantity 
+        monthly_data[month][item_name] += rental.quantity
         all_months_set.add(month)
         all_items_set.add(item_name)
 
      # 返却データ処理（追加部分）
-    for return_obj in returns:
-        return_month = return_obj.return_date.strftime('%Y-%m')
-        item_name = return_obj.item.name
+    for return_rental in returns:
+        return_month = return_rental.return_date.strftime('%Y-%m')
+        item_name = return_rental.item.name
         monthly_data[return_month][item_name] = max(
-            monthly_data[return_month][item_name] - return_obj.quantity, 
+            monthly_data[return_month][item_name] - return_rental.quantity,
             0
         )
         all_months_set.add(return_month)
         all_items_set.add(item_name)
-
+        
     # x軸ラベルと品目名一覧をソート
     labels = sorted(all_months_set)
     item_names = sorted(all_items_set)
