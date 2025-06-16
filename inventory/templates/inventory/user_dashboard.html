@@ -110,7 +110,7 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
+    <script>
     const ctxMonthly = document.getElementById('monthlyRentalChart').getContext('2d');
     new Chart(ctxMonthly, {
       type: 'bar',
@@ -145,6 +145,7 @@
 
     const allData = {{ datasets|safe }}.flatMap(ds => ds.data);
     const maxVal = Math.max(...allData);
+    const yMax = Math.max(maxVal + 1, 5);  // ★ 最小でも5にする
 
     const ctxItem = document.getElementById('rentalChart').getContext('2d');
     new Chart(ctxItem, {
@@ -161,7 +162,7 @@
         scales: {
           y: {
             beginAtZero: true,
-            suggestedMax: maxVal + 1,
+            suggestedMax: yMax,
             title: { display: true, text: '貸出台数' },
             ticks: {
               callback: function(value) {
@@ -175,6 +176,7 @@
       }
     });
   </script>
+
 </div>
 {% endblock %}
 
