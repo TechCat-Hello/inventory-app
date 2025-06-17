@@ -99,18 +99,18 @@
   <!-- グラフ -->
   <div>
     <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
-      <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; text-align: center;">📊 月別貸出台数合計</h2>
+      <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; text-align: center;">現在貸出中の備品数（リアルタイム、月別）</h2>
       <canvas id="monthlyRentalChart" height="300"></canvas>
     </div>
     <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
-      <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; text-align: center;">📦 品目別 月別貸出台数</h2>
+      <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem; text-align: center;">品目別 現在貸出中の備品数（リアルタイム、月別）</h2>
       <canvas id="rentalChart" height="300"></canvas>
     </div>
   </div>
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
+  <script>
     const ctxMonthly = document.getElementById('monthlyRentalChart').getContext('2d');
     new Chart(ctxMonthly, {
       type: 'bar',

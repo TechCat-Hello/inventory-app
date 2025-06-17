@@ -23,7 +23,7 @@ from django.utils.timezone import now, localtime
 import calendar
 from collections import defaultdict
 from django.views import View
-
+from datetime import datetime
 
 # 一般ユーザー判定関数
 def is_general_user(user):
@@ -87,77 +87,94 @@ def admin_dashboard_view(request):
 
 @login_required
 def user_dashboard_view(request):
-    # 自分が登録した備品
     items = InventoryItem.objects.filter(added_by=request.user)
-    # 自分が借りた貸出データ
     rentals = Rental.objects.filter(user=request.user).select_related('item')
-    # 自分が返却したデータ
-    returns = Rental.objects.filter(
-        user=request.user,
-        return_date__isnull=False  # 返却日が登録されているデータのみ取得
-    ).select_related('item')
 
-    # 品目ごとの月別貸出台数（quantityで集計）
-    monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 台数}}
+    rental_active_counts = defaultdict(lambda: defaultdict(int))
+    current_rentals_count = defaultdict(int)  # 品目別：現在貸出中数
     all_months_set = set()
     all_items_set = set()
 
-    # 貸出データ処理
+    today = datetime.today()
+    this_month = datetime(today.year, today.month, 1)
+
     for rental in rentals:
-        month = rental.rental_date.strftime('%Y-%m')
         item_name = rental.item.name
-        monthly_data[month][item_name] += rental.quantity
-        all_months_set.add(month)
         all_items_set.add(item_name)
 
-     # 返却データ処理（追加部分）
-    for return_rental in returns:
-        return_month = return_rental.return_date.strftime('%Y-%m')
-        item_name = return_rental.item.name
-        monthly_data[return_month][item_name] = max(
-            monthly_data[return_month][item_name] - return_rental.quantity,
-            0
-        )
-        all_months_set.add(return_month)
-        all_items_set.add(item_name)
-        
-    # x軸ラベルと品目名一覧をソート
-    labels = sorted(all_months_set)
+        if not rental.rental_date:
+            continue
+
+        start_date = datetime(rental.rental_date.year, rental.rental_date.month, 1)
+
+        if rental.return_date:
+            return_month = datetime(rental.return_date.year, rental.return_date.month, 1)
+            end_date = return_month
+        else:
+            end_date = this_month
+            # 現在貸出中の品目を集計
+            current_rentals_count[item_name] += rental.quantity
+
+        current = start_date
+        while current <= end_date:
+            month_str = current.strftime('%Y-%m')
+            rental_active_counts[month_str][item_name] += rental.quantity
+            all_months_set.add(month_str)
+
+            if current.month == 12:
+                current = datetime(current.year + 1, 1, 1)
+            else:
+                current = datetime(current.year, current.month + 1, 1)
+
+    # 月を連続した時系列で整列
+    sorted_months_dt = sorted([datetime.strptime(m, '%Y-%m') for m in all_months_set])
+    if not sorted_months_dt:
+        return render(request, 'inventory/user_dashboard.html', {
+            'labels': [], 'datasets': [], 'data': [],
+            'current_rentals': {}, 'rentals': rentals, 'items': items,
+        })
+
+    start = sorted_months_dt[0]
+    end = sorted_months_dt[-1]
+    current = datetime(start.year, start.month, 1)
+    all_months = []
+
+    while current <= end:
+        all_months.append(current.strftime('%Y-%m'))
+        if current.month == 12:
+            current = datetime(current.year + 1, 1, 1)
+        else:
+            current = datetime(current.year, current.month + 1, 1)
+
+    # 月別グラフ用データ構築
     item_names = sorted(all_items_set)
-
-    # カラーパレット（品目が6種を超えても色が繰り返される）
+    datasets = []
     color_palette = [
-        'rgba(255, 99, 132, 0.7)',
-        'rgba(54, 162, 235, 0.7)',
-        'rgba(255, 206, 86, 0.7)',
-        'rgba(75, 192, 192, 0.7)',
-        'rgba(153, 102, 255, 0.7)',
-        'rgba(255, 159, 64, 0.7)',
-        'rgba(199, 199, 199, 0.7)',
-        'rgba(83, 102, 255, 0.7)',
-        'rgba(255, 102, 255, 0.7)',
-        'rgba(102, 255, 204, 0.7)',
+        'rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)',
+        'rgba(255, 206, 86, 0.7)', 'rgba(75, 192, 192, 0.7)',
+        'rgba(153, 102, 255, 0.7)', 'rgba(255, 159, 64, 0.7)',
+        'rgba(199, 199, 199, 0.7)', 'rgba(83, 102, 255, 0.7)',
+        'rgba(255, 102, 255, 0.7)', 'rgba(102, 255, 204, 0.7)',
     ]
 
-    # Chart.js 用 datasets
-    datasets = []
-    for idx, item_name in enumerate(item_names):
-        data = [monthly_data[month].get(item_name, 0) for month in labels]
+    for idx, item in enumerate(item_names):
+        data = [rental_active_counts[month][item] for month in all_months]
         datasets.append({
-            'label': item_name,
+            'label': item,
             'data': data,
             'backgroundColor': color_palette[idx % len(color_palette)],
             'borderColor': color_palette[idx % len(color_palette)].replace('0.7', '1'),
             'borderWidth': 1,
         })
 
-    # 月別貸出台数合計（全品目合計）
-    monthly_total_counts = [sum(monthly_data[month].values()) for month in labels]
+    # 月ごとの合計貸出中数（全品目）
+    monthly_total_counts = [sum(rental_active_counts[month].values()) for month in all_months]
 
     return render(request, 'inventory/user_dashboard.html', {
-        'labels': labels,
+        'labels': all_months,
         'datasets': datasets,
         'data': monthly_total_counts,
+        'current_rentals': dict(current_rentals_count),  # 現在貸出中の品目と数量
         'rentals': rentals,
         'items': items,
     })
@@ -390,7 +407,7 @@ def export_rentals_csv(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment; filename="rental_history.csv"'
 
-    response.write('\ufeff')
+    response.write('\ufeff')  # Excel用のBOM
 
     writer = csv.writer(response)
     writer.writerow(['アイテム名', '数量', '貸出日', '返却予定日', '返却日', 'ステータス'])
@@ -399,9 +416,9 @@ def export_rentals_csv(request):
         writer.writerow([
             rental.item.name,
             rental.quantity,
-            rental.rental_date,
-            rental.expected_return_date,
-            rental.return_date or '未返却',
+            rental.rental_date.strftime('%Y-%m-%d') if rental.rental_date else '',
+            rental.expected_return_date.strftime('%Y-%m-%d') if rental.expected_return_date else '',
+            rental.return_date.strftime('%Y-%m-%d') if rental.return_date else '未返却',
             dict(Rental.STATUS_CHOICES).get(rental.status, rental.status),
         ])
 
