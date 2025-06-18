@@ -1,47 +1,50 @@
 {% extends "base.html" %}
 
+{% block title %}備品貸出登録{% endblock %}
+
 {% block content %}
-  <h1>備品貸出登録</h1>
+<div style="max-width: 600px; margin: 0 auto; padding: 2rem; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9;">
+
+  <h1 style="font-size: 1.8rem; font-weight: bold; margin-bottom: 1rem;">備品貸出登録</h1>
 
   {% if item %}
-    <h2>貸出する備品: {{ item.name }}</h2>
+    <p style="font-size: 1.1rem; margin-bottom: 1.5rem;">貸出する備品：<strong>{{ item.name }}</strong></p>
   {% endif %}
 
   <form method="post">
     {% csrf_token %}
 
-    <div class="form-group">
-      <label for="id_quantity">数量</label>
+    <div style="margin-bottom: 1.2rem;">
+      <label for="id_quantity" style="display: block; font-weight: bold; margin-bottom: 0.5rem;">数量</label>
       {{ form.quantity }}
       {% if form.quantity.errors %}
-        <div class="text-danger">
-          {{ form.quantity.errors }}
-        </div>
+        <div style="color: red; margin-top: 0.5rem;">{{ form.quantity.errors }}</div>
       {% endif %}
     </div>
 
-    <div class="form-group">
-      <label for="id_expected_return_date">予定返却日</label>
+    <div style="margin-bottom: 1.2rem;">
+      <label for="id_expected_return_date" style="display: block; font-weight: bold; margin-bottom: 0.5rem;">予定返却日</label>
       {{ form.expected_return_date }}
       {% if form.expected_return_date.errors %}
-        <div class="text-danger">
-          {{ form.expected_return_date.errors }}
-        </div>
+        <div style="color: red; margin-top: 0.5rem;">{{ form.expected_return_date.errors }}</div>
       {% endif %}
     </div>
 
     {% if form.non_field_errors %}
-      <div class="alert alert-danger">
+      <div style="color: white; background-color: #dc3545; padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem;">
         {{ form.non_field_errors }}
       </div>
     {% endif %}
 
-    <button type="submit" class="btn btn-primary">貸し出し登録</button>
+    <button type="submit" style="padding: 0.5rem 1.5rem; background-color: #007bff; color: white; border: none; border-radius: 4px; font-weight: bold;">貸し出し登録</button>
   </form>
 
-  <p>
-    <a href="{% url 'user_dashboard' %}" style="color: blue; text-decoration: underline;">← ユーザーダッシュボードに戻る</a>
+  <p style="margin-top: 1.5rem;">
+    <a href="{% url 'user_dashboard' %}" style="color: #007bff; text-decoration: none;">← ユーザーダッシュボードに戻る</a>
   </p>
+
+</div>
 {% endblock %}
+
 
 
