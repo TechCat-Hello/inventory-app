@@ -15,13 +15,13 @@
 
   <!-- 月別貸出台数グラフ -->
   <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
-    <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;">📊 全ユーザーの貸出台数（月別）</h2>
+    <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;">現在貸出中の備品数（全ユーザー、リアルタイム、月別）</h2>
     <canvas id="monthlyRentalChart" height="300"></canvas>
   </div>
 
   <!-- 品目別月別貸出台数 -->
   <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
-    <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;">📦 品目別 月別貸出台数</h2>
+    <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;">品目別 現在貸出中の備品数（全ユーザー、リアルタイム、月別）</h2>
     <canvas id="rentalChart" height="300"></canvas>
   </div>
 
@@ -83,6 +83,14 @@
                   title: {
                       display: true,
                       text: '貸出台数'
+                  },
+                  ticks: {
+                      stepSize: 1,
+                      callback: function(value) {
+                          if (Number.isInteger(value)) {
+                              return value;
+                          }
+                      }
                   }
               },
               x: {

@@ -36,26 +36,22 @@ def is_admin(user):
 @login_required
 @user_passes_test(is_admin)
 def admin_dashboard_view(request):
-    # 全レンタルデータを取得
     rentals = Rental.objects.select_related('item').all()
 
-    # 品目ごとの月別データを収集
-    monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 数}}
+    monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 貸出台数（個数）}}
     all_months_set = set()
     all_items_set = set()
 
     for rental in rentals:
-        
         month = rental.rental_date.strftime('%Y-%m')
         item_name = rental.item.name
-        monthly_data[month][item_name] += 1
+        monthly_data[month][item_name] += rental.quantity  # ← 件数でなく数量を加算
         all_months_set.add(month)
         all_items_set.add(item_name)
 
-    labels = sorted(all_months_set)  # ['2025-03', '2025-04', ...]
+    labels = sorted(all_months_set)
     item_names = sorted(all_items_set)
 
-    # カラーパレット（色数追加可能）
     color_palette = [
         'rgba(255, 99, 132, 0.7)',
         'rgba(54, 162, 235, 0.7)',
@@ -76,7 +72,6 @@ def admin_dashboard_view(request):
             'borderWidth': 1,
         })
 
-    # 全ユーザーの月別貸出台数合計
     monthly_total_counts = [sum(monthly_data[month].values()) for month in labels]
 
     return render(request, 'inventory/admin_dashboard.html', {
@@ -551,15 +546,30 @@ def export_all_rentals_pdf(request):
 def get_monthly_rental_data(user):
     if user.is_staff:
         rentals = Rental.objects.all()
+        # 管理者は貸出台数を「備品の数量（Sum）」で表示
+        monthly_totals = rentals.annotate(month=TruncMonth('rental_date')) \
+                                .values('month') \
+                                .annotate(total_quantity=Sum('quantity')) \
+                                .order_by('month')
+
+        item_month_data = rentals.annotate(month=TruncMonth('rental_date')) \
+                                 .values('item__name', 'month') \
+                                 .annotate(total_quantity=Sum('quantity')) \
+                                 .order_by('month')
     else:
         rentals = Rental.objects.filter(user=user)
+        # 一般ユーザーは貸出台数を「借りた回数（Count）」で表示
+        monthly_totals = rentals.annotate(month=TruncMonth('rental_date')) \
+                                .values('month') \
+                                .annotate(total_quantity=Count('id')) \
+                                .order_by('month')
 
-    # 月ごとの貸出台数（全体合計）
-    monthly_totals = rentals.annotate(month=TruncMonth('rental_date')) \
-                            .values('month') \
-                            .annotate(total_quantity=Sum('quantity')) \
-                            .order_by('month')
+        item_month_data = rentals.annotate(month=TruncMonth('rental_date')) \
+                                 .values('item__name', 'month') \
+                                 .annotate(total_quantity=Count('id')) \
+                                 .order_by('month')
 
+    # 共通処理：月ごとのラベルとデータ作成
     labels = []
     data = []
     for entry in monthly_totals:
@@ -567,13 +577,7 @@ def get_monthly_rental_data(user):
         labels.append(month_label)
         data.append(entry['total_quantity'])
 
-    # 品目別・月別貸出台数
-    item_month_data = rentals.annotate(month=TruncMonth('rental_date')) \
-                             .values('item__name', 'month') \
-                             .annotate(total_quantity=Sum('quantity')) \
-                             .order_by('month')
-
-    # 月ラベルを固定し、品目ごとに対応する貸出台数を格納
+    # 品目別・月別データ整形
     item_data = defaultdict(lambda: [0] * len(labels))
     month_index = {label: i for i, label in enumerate(labels)}
 
@@ -584,7 +588,7 @@ def get_monthly_rental_data(user):
         if idx is not None:
             item_data[item_name][idx] = entry['total_quantity']
 
-    # Chart.js 用 datasets 形式に変換
+    # Chart.js datasets形式へ変換
     datasets = [{
         'label': item,
         'data': quantities,
