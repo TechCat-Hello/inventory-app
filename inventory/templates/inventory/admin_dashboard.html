@@ -17,12 +17,18 @@
   <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
     <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;">現在貸出中の備品数（全ユーザー、リアルタイム、月別）</h2>
     <canvas id="monthlyRentalChart" height="300"></canvas>
+    <p style="font-size: 0.9rem; color: gray;">
+      ※該当月に貸出台数が0の場合は非表示になります。
+    </p>
   </div>
 
   <!-- 品目別月別貸出台数 -->
   <div style="margin-top: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">
     <h2 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 1rem;">品目別 現在貸出中の備品数（全ユーザー、リアルタイム、月別）</h2>
     <canvas id="rentalChart" height="300"></canvas>
+    <p style="font-size: 0.9rem; color: gray;">
+      ※貸出台数が0の品目はグラフに表示されません。
+    </p>
   </div>
 
 </div>
