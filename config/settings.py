@@ -67,8 +67,7 @@ DATABASES = {
     'default': dj_database_url.config(default=config('DATABASE_URL'), conn_max_age=600)
 }
 
-
-# EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 # EMAIL_HOST = config('EMAIL_HOST', default='')
 # EMAIL_PORT = config('EMAIL_PORT', cast=int, default=587)
 # EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=True)
