@@ -71,35 +71,31 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-    input[type="submit"] {
+    .full-width-button {
       width: 100%;
       padding: 10px;
-      background-color: #4CAF50;
-      color: white;
+      font-size: 1em;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      display: inline-block;
+      text-align: center;
+      text-decoration: none;
       margin-top: 20px;
     }
-    input[type="submit"]:hover {
+    .login-btn {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .login-btn:hover {
       background-color: #45a049;
     }
-    .signup-link {
-      margin-top: 15px;
-    }
-    .signup-link p {
-      margin-bottom: 10px;
-    }
-    .signup-link button {
-      padding: 10px;
+    .signup-btn {
       background-color: #2196F3;
       color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
+      margin-top: 10px;
     }
-    .signup-link button:hover {
+    .signup-btn:hover {
       background-color: #1976D2;
     }
     .forgot-password {
@@ -126,22 +122,6 @@
       margin: 0;
       font-weight: normal;
       text-align: left;
-    }
-    .signup-btn {
-      display: block;
-      padding: 10px;
-      background-color: #2196F3;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-      text-align: center;
-      text-decoration: none;
-      margin-top: 10px;
-    }
-    .signup-btn:hover {
-      background-color: #1976D2;
     }
     @media (max-width: 600px) {
       body {
@@ -176,7 +156,7 @@
         padding: 7px;
         font-size: 1em;
       }
-      input[type="submit"], .signup-btn, .signup-link button {
+      .full-width-button {
         padding: 10px 0;
         font-size: 1em;
       }
@@ -204,9 +184,7 @@
 </head>
 <body>
   <div class="login-container">
-    <!-- アプリ名 -->
     <div class="app-title">備品管理アプリ</div>
-    <!-- アプリ説明 -->
     <div class="app-description">
       備品の登録・貸出・返却を<br>
       一元管理するWebアプリです。<br>
@@ -232,11 +210,11 @@
       <div class="forgot-password">
         パスワードをお忘れですか？ <a href="{% url 'password_reset' %}">こちらへ</a>
       </div>
-      <input type="submit" value="ログイン">
+      <input type="submit" value="ログイン" class="full-width-button login-btn">
     </form>
     <div class="signup-link">
       <p>アカウントをお持ちでない方はこちら</p>
-      <a href="{% url 'signup' %}" class="signup-btn">新規登録</a>
+      <a href="{% url 'signup' %}" class="full-width-button signup-btn">新規登録</a>
     </div>
   </div>
 </body>
