@@ -23,7 +23,7 @@ from django.utils.timezone import now, localtime
 import calendar
 from collections import defaultdict
 from django.views import View
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # 一般ユーザー判定関数
 def is_general_user(user):
@@ -376,10 +376,20 @@ def all_rental_history_view(request):
 
     if status:
         rentals = rentals.filter(status=status)
+
     if start_date:
-        rentals = rentals.filter(rental_date__gte=start_date)
+        try:
+            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            rentals = rentals.filter(rental_date__gte=start_date_obj)
+        except ValueError:
+            pass
+
     if end_date:
-        rentals = rentals.filter(rental_date__lte=end_date)
+        try:
+            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
+            rentals = rentals.filter(rental_date__lt=end_date_obj)  # "翌日の0:00"未満を対象に含める
+        except ValueError:
+            pass
 
     users = User.objects.all()
     items = InventoryItem.objects.all()
