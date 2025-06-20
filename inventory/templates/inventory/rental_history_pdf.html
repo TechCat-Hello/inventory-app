@@ -6,9 +6,7 @@
     <style>
         @font-face {
             font-family: "NotoSansJP";
-            src: url("{% static 'fonts/NotoSansJP-VariableFont_wght.ttf' %}") format("truetype");
-            font-weight: normal;
-            font-style: normal;
+            src: url("{{ STATIC_URL }}fonts/NotoSansJP-VariableFont_wght.ttf") format("truetype");
         }
 
         body {

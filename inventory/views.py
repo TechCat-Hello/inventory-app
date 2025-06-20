@@ -24,6 +24,9 @@ import calendar
 from collections import defaultdict
 from django.views import View
 from datetime import datetime, timedelta
+from django.conf import settings
+import os
+
 
 # 一般ユーザー判定関数
 def is_general_user(user):
@@ -470,12 +473,10 @@ def export_rentals_pdf(request):
 
     # テンプレートをHTMLに変換
     html_string = render_to_string('inventory/rental_history_pdf.html', context)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
 
-    # PDFに変換
-    html = HTML(string=html_string)
     pdf = html.write_pdf()
 
-    # PDFをHTTPレスポンスとして返す
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="rental_history.pdf"'
     return response
