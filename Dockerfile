@@ -1,13 +1,14 @@
 # ベースイメージの指定（Python公式イメージ）
 FROM python:3.11-slim
 
-# 必要なシステムパッケージと日本語フォントをインストール
+# 必要なシステムパッケージと日本語フォントをインストールし、フォントキャッシュを更新
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
     libcairo2 \
     fonts-noto-cjk \
+    && fc-cache -f -v \
     && apt-get clean
 
 # 作業ディレクトリを /code に設定
@@ -21,5 +22,6 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # ホストのソースコードをすべて /code にコピー
 COPY . /code/
+
 
 
