@@ -1,10 +1,18 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <style>
+        @font-face {
+            font-family: "NotoSansJP";
+            src: url("{% static 'fonts/NotoSansJP-VariableFont_wght.ttf' %}") format("truetype");
+            font-weight: normal;
+            font-style: normal;
+        }
+
         body {
-            font-family: "Arial", sans-serif;
+            font-family: "NotoSansJP", sans-serif;
             font-size: 12px;
         }
 
