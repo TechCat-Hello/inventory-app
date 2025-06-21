@@ -15,7 +15,7 @@ from django.http import HttpResponse
 import openpyxl
 from openpyxl.utils import get_column_letter
 from django.template.loader import render_to_string
-from weasyprint import HTML
+from weasyprint import HTML, css
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models.functions import TruncMonth
 from django.db.models import Count, Sum
@@ -467,7 +467,6 @@ def export_rentals_excel(request):
 def export_rentals_pdf(request):
     rentals = Rental.objects.filter(user=request.user)
 
-    # base_url を context に含める（テンプレートで static フォントを絶対URLで読み込むため）
     base_url = request.build_absolute_uri('/')
     context = {
         'rentals': rentals,
@@ -478,17 +477,45 @@ def export_rentals_pdf(request):
     # HTML をテンプレートから生成
     html_string = render_to_string('inventory/rental_history_pdf.html', context)
 
-    # WeasyPrint のログ出力を有効化（Renderのログタブで確認可能）
+    # WeasyPrint のログ出力を有効化（Render のログタブで確認可能）
     logger = logging.getLogger("weasyprint")
     logger.setLevel(logging.DEBUG)
     logger.addHandler(logging.StreamHandler())
 
-    # フォント設定（必要に応じてシステムフォントを読み込む）
-    font_config = FontConfiguration()
+    # フォントファイルのパス（static/fonts に配置されていること）
+    font_path = os.path.join(settings.STATIC_ROOT, 'fonts', 'NotoSansCJKjp-Regular.otf')
+
+    # カスタムCSS（フォント埋め込み）
+    css = CSS(string=f"""
+        @font-face {{
+            font-family: 'Noto Sans CJK JP';
+            src: url('file://{font_path}') format('opentype');
+        }}
+        body {{
+            font-family: 'Noto Sans CJK JP', sans-serif;
+            font-size: 12px;
+        }}
+        h1 {{
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        th, td {{
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }}
+        th {{
+            background-color: #f2f2f2;
+        }}
+    """)
 
     # PDF を生成
     html = HTML(string=html_string, base_url=base_url)
-    pdf = html.write_pdf(font_config=font_config)
+    pdf = html.write_pdf(stylesheets=[css])
 
     # PDF をレスポンスとして返す
     response = HttpResponse(pdf, content_type='application/pdf')
