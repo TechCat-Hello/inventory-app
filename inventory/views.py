@@ -15,7 +15,7 @@ from django.http import HttpResponse
 import openpyxl
 from openpyxl.utils import get_column_letter
 from django.template.loader import render_to_string
-from weasyprint import HTML, css
+from weasyprint import HTML, CSS
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models.functions import TruncMonth
 from django.db.models import Count, Sum
