@@ -465,17 +465,22 @@ def export_rentals_excel(request):
 def export_rentals_pdf(request):
     rentals = Rental.objects.filter(user=request.user)
 
+    # base_url を context に含める（テンプレートで static フォントを絶対URLで読み込むため）
+    base_url = request.build_absolute_uri('/')
     context = {
         'rentals': rentals,
         'user': request.user,
+        'base_url': base_url,  # ← ここが大事
     }
 
+    # HTML をテンプレートから生成
     html_string = render_to_string('inventory/rental_history_pdf.html', context)
-    base_url = request.build_absolute_uri('/')  
+
+    # PDF を生成（base_url を指定してフォントなどの静的ファイルを解決できるようにする）
     html = HTML(string=html_string, base_url=base_url)
     pdf = html.write_pdf()
 
-    # PDFをレスポンスとして返す
+    # PDF をレスポンスとして返す
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="rental_history.pdf"'
     return response
