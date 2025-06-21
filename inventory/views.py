@@ -26,6 +26,8 @@ from django.views import View
 from datetime import datetime, timedelta
 from django.conf import settings
 import os
+from weasyprint.text.fonts import FontConfiguration   #確認用
+import logging    #確認用
 
 
 # 一般ユーザー判定関数
@@ -470,15 +472,23 @@ def export_rentals_pdf(request):
     context = {
         'rentals': rentals,
         'user': request.user,
-        'base_url': base_url,  # ← ここが大事
+        'base_url': base_url,
     }
 
     # HTML をテンプレートから生成
     html_string = render_to_string('inventory/rental_history_pdf.html', context)
 
-    # PDF を生成（base_url を指定してフォントなどの静的ファイルを解決できるようにする）
+    # WeasyPrint のログ出力を有効化（Renderのログタブで確認可能）
+    logger = logging.getLogger("weasyprint")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+
+    # フォント設定（必要に応じてシステムフォントを読み込む）
+    font_config = FontConfiguration()
+
+    # PDF を生成
     html = HTML(string=html_string, base_url=base_url)
-    pdf = html.write_pdf()
+    pdf = html.write_pdf(font_config=font_config)
 
     # PDF をレスポンスとして返す
     response = HttpResponse(pdf, content_type='application/pdf')
