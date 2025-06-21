@@ -24,5 +24,12 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # ホストのソースコードをすべて /code にコピー
 COPY . /code/
 
+# フォントファイルをシステムフォントディレクトリにコピー
+COPY ./static/fonts/NotoSansCJKjp-Regular.otf /usr/share/fonts/opentype/NotoSansCJKjp-Regular.otf
+
+# フォントキャッシュを再構築
+RUN fc-cache -fv
+
+
 
 
