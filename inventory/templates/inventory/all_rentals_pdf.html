@@ -1,12 +1,25 @@
+{% load static %}
 <!DOCTYPE html>
+<html lang="ja">
 <html>
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <style>
-        body { font-family: sans-serif; }
+        @font-face {
+            font-family: 'Noto Sans CJK JP';
+            src: url("file:///opt/render/project/src/staticfiles/fonts/NotoSansCJKjp-Regular.otf") format("opentype");
+        }
+        body {
+            font-family: 'Noto Sans CJK JP', sans-serif;
+            font-size: 12px;
+        }
         h2 { text-align: center; margin-bottom: 30px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #000; padding: 8px; text-align: center; }
+        tr {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
     </style>
 </head>
 <body>
@@ -31,16 +44,16 @@
                 <td>{{ rental.user.username }}</td>
                 <td>{{ rental.item.name }}</td>
                 <td>{{ rental.quantity }}</td>
-                <td>{{ rental.rental_date|date:"Y/m/d" }}</td>
-                <td>{{ rental.expected_return_date|date:"Y/m/d" }}</td>
-                <td>
+                <td style="white-space: nowrap;">{{ rental.rental_date|date:"Y年m月d日 H:i" }}</td>
+                <td style="white-space: nowrap;">{{ rental.expected_return_date|date:"Y年m月d日" }}</td>
+                <td style="white-space: nowrap;">
                     {% if rental.return_date %}
-                        {{ rental.return_date|date:"Y/m/d" }}
+                        {{ rental.return_date|date:"Y年m月d日" }}
                     {% else %}
                         未返却
                     {% endif %}
                 </td>
-                <td>{{ rental.get_status_display }}</td>
+                <td style="white-space: nowrap;">{{ rental.get_status_display }}</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -482,7 +482,7 @@ def export_rentals_pdf(request):
     logger.setLevel(logging.DEBUG)
     logger.addHandler(logging.StreamHandler())
 
-    # フォントファイルのパス（static/fonts に配置されていること）
+    # フォントファイルのパス
     font_path = os.path.join(settings.STATIC_ROOT, 'fonts', 'NotoSansCJKjp-Regular.otf')
 
     # カスタムCSS（フォント埋め込み）
@@ -581,16 +581,60 @@ def export_all_rentals_excel(request):
 @staff_member_required
 def export_all_rentals_pdf(request):
     rentals = Rental.objects.select_related('user', 'item').all()
-
+    
+    # ベースURLの取得
+    base_url = request.build_absolute_uri('/')
+    
     context = {
         'rentals': rentals,
         'current_user': request.user,
     }
 
+    # HTMLをテンプレートから生成
     html_string = render_to_string('inventory/all_rentals_pdf.html', context)
-    html = HTML(string=html_string)
-    pdf = html.write_pdf()
+    
+    # WeasyPrintのログ設定（Renderのログタブで確認可能）
+    logger = logging.getLogger("weasyprint")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+    
+    # フォントファイルの絶対パスを取得
+    font_path = os.path.join(settings.STATIC_ROOT, 'fonts', 'NotoSansCJKjp-Regular.otf')
+    
+    # カスタムCSS（日本語フォントの埋め込み）
+    css = CSS(string=f"""
+        @font-face {{
+            font-family: 'Noto Sans CJK JP';
+            src: url('file://{font_path}') format('opentype');
+        }}
+        body {{
+            font-family: 'Noto Sans CJK JP', sans-serif;
+            font-size: 12px;
+        }}
+        h2 {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }}
+        th, td {{
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }}
+        th {{
+            background-color: #f2f2f2;
+        }}
+    """)
 
+    # PDFを生成
+    html = HTML(string=html_string, base_url=base_url)
+    pdf = html.write_pdf(stylesheets=[css])
+
+    # PDFをレスポンスとして返す
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="all_rental_history.pdf"'
     return response
