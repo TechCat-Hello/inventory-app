@@ -50,9 +50,9 @@
             {% for rental in rentals %}
             <tr>
                 <td>{{ rental.item.name }}</td>
-                <td>{{ rental.rental_date|date:"Y年m月d日 H:i" }}</td>
-                <td>{{ rental.expected_return_date|date:"Y年m月d日" }}</td>
-                <td>
+                <td style="white-space: nowrap;">{{ rental.rental_date|date:"Y年m月d日 H:i" }}</td>
+                <td style="white-space: nowrap;">{{ rental.expected_return_date|date:"Y年m月d日" }}</td>
+                <td style="white-space: nowrap;">
                     {% if rental.return_date %}
                         {{ rental.return_date|date:"Y年m月d日" }}
                     {% else %}
