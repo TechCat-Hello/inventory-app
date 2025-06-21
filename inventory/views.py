@@ -473,8 +473,9 @@ def export_rentals_pdf(request):
 
     # テンプレートをHTMLに変換
     html_string = render_to_string('inventory/rental_history_pdf.html', context)
-    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    base_url = request.build_absolute_uri('/')
 
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
     pdf = html.write_pdf()
 
     response = HttpResponse(pdf, content_type='application/pdf')
