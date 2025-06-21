@@ -470,13 +470,8 @@ def export_rentals_pdf(request):
         'user': request.user,
     }
 
-    # HTMLをテンプレートから生成
     html_string = render_to_string('inventory/rental_history_pdf.html', context)
-
-    # base_url を一度だけ生成
-    base_url = request.build_absolute_uri('/')
-
-    # PDFを生成
+    base_url = request.build_absolute_uri('/')  
     html = HTML(string=html_string, base_url=base_url)
     pdf = html.write_pdf()
 
