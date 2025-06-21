@@ -465,19 +465,22 @@ def export_rentals_excel(request):
 def export_rentals_pdf(request):
     rentals = Rental.objects.filter(user=request.user)
 
-    # レンダリング用のHTMLテンプレートに渡すコンテキスト
     context = {
         'rentals': rentals,
         'user': request.user,
     }
 
-    # テンプレートをHTMLに変換
+    # HTMLをテンプレートから生成
     html_string = render_to_string('inventory/rental_history_pdf.html', context)
+
+    # base_url を一度だけ生成
     base_url = request.build_absolute_uri('/')
 
-    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    # PDFを生成
+    html = HTML(string=html_string, base_url=base_url)
     pdf = html.write_pdf()
 
+    # PDFをレスポンスとして返す
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="rental_history.pdf"'
     return response

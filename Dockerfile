@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     libpangocairo-1.0-0 \
     libcairo2 \
     fonts-noto-cjk \
+    fonts-noto-cjk-extra \
     && fc-cache -f -v \
     && apt-get clean
 
