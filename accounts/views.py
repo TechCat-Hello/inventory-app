@@ -28,7 +28,6 @@ def login_view(request):
 
 # 新規登録ページ
 def signup_view(request):
-    #新規登録を無効化する場合は以下のコードを削除
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -38,10 +37,7 @@ def signup_view(request):
         form = CustomUserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
 
-    #新規登録を無効化する場合は以下のコードを使用
-    ##message = "このアプリでは新規登録はできません"
-    #return render(request, 'signup.html', {'message': message})
-
+    
 def custom_login_view(request):
     if request.method == 'POST':
         username = request.POST['username']

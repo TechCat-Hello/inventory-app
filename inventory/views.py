@@ -266,7 +266,7 @@ def edit_item(request, pk):
     item = get_object_or_404(InventoryItem, pk=pk)
 
     # 一般ユーザーは自分が登録したものだけ編集可能
-    if not request.user.is_superuser and item.user != request.user:
+    if not request.user.is_superuser and item.added_by!= request.user:
         return redirect('user_dashboard')  # 不正アクセス防止
 
     if request.method == 'POST':
@@ -286,7 +286,7 @@ class InventoryItemDeleteView(DeleteView):
 
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
-        if obj.user != request.user:
+        if obj.added_by != request.user:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
     
@@ -449,8 +449,8 @@ def export_rentals_excel(request):
         ws.append([
             rental.item.name,
             rental.quantity,
-            rental.rental_date.strftime("%Y/%m/%d"),
-            rental.expected_return_date.strftime("%Y/%m/%d"),
+            rental.rental_date.strftime("%Y/%m/%d") if rental.rental_date else '',
+            rental.expected_return_date.strftime("%Y/%m/%d") if rental.expected_return_date else '',
             rental.return_date.strftime("%Y/%m/%d") if rental.return_date else '未返却',
             dict(Rental.STATUS_CHOICES).get(rental.status, rental.status),
         ])

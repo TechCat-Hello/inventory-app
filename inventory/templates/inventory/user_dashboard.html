@@ -151,7 +151,7 @@
 
     const allData = {{ datasets|safe }}.flatMap(ds => ds.data);
     const maxVal = Math.max(...allData);
-    const yMax = Math.max(maxVal + 1, 5);  // ★ 最小でも5にする
+    const yMax = Math.max(maxVal + 1, 5);  
 
     const ctxItem = document.getElementById('rentalChart').getContext('2d');
     new Chart(ctxItem, {

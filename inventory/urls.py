@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from inventory import views
 from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
@@ -10,13 +9,10 @@ urlpatterns = [
     path('items/', views.item_list, name='item_list'),
     path('items/<int:pk>/', views.item_detail, name='item_detail'),
     path('items/create/', views.item_create, name='item_create'),
-    path('items/<int:pk>/edit/', views.item_update, name='item_update'),
+    path('items/<int:pk>/edit/', views.item_update, name='edit_item'),
     path('items/<int:pk>/delete/', views.item_delete, name='item_delete'),
-    path('items/<int:pk>/edit/', views.edit_item, name='edit_item'),
-    path('items/<int:pk>/delete/', views.InventoryItemDeleteView.as_view(), name='item_delete'),
     path('rentals/', views.rental_list, name='rental_list'),
     path('rental/create/<int:item_id>/', views.rental_create, name='rental_create'),
-    path('rentals/create/', views.rental_create, name='rental_create'),
     path('return_item/<int:rental_id>/', views.return_item, name='return_item'),
     path('admin_rentals/', views.all_rental_history_view, name='all_rental_history'),
     path('all_rental_history/', views.all_rental_history_view, name='all_rental_history'),

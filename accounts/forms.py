@@ -28,26 +28,3 @@ class CustomUserCreationForm(UserCreationForm):
         return user
 
 
-# （参考までに）備品管理アプリで使いそうな検索フォームや追加フォームがあればここに追加
-
-# 備品カテゴリ選択用のフォーム
-EQUIPMENT_CATEGORIES = [
-    ('pc', 'パソコン'),
-    ('printer', 'プリンター'),
-    ('desk', '机'),
-    ('chair', '椅子'),
-    # 必要に応じて追加
-]
-
-class EquipmentSearchForm(forms.Form):
-    category = forms.ChoiceField(
-        choices=EQUIPMENT_CATEGORIES,
-        required=False,
-        label='カテゴリ',
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-    keyword = forms.CharField(
-        required=False,
-        label='キーワード検索',
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '備品名や説明など'})
-    )
