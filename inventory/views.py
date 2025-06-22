@@ -465,7 +465,7 @@ def export_rentals_excel(request):
 
 @login_required
 def export_rentals_pdf(request):
-    rentals = Rental.objects.filter(user=request.user)
+    rentals = Rental.objects.filter(user=request.user).order_by('-rental_date')
 
     base_url = request.build_absolute_uri('/')
     context = {
@@ -580,8 +580,8 @@ def export_all_rentals_excel(request):
 
 @staff_member_required
 def export_all_rentals_pdf(request):
-    rentals = Rental.objects.select_related('user', 'item').all()
-    
+    rentals = Rental.objects.all().order_by('user__username', '-rental_date')
+
     # ベースURLの取得
     base_url = request.build_absolute_uri('/')
     
