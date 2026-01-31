@@ -8,9 +8,10 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 
 # ログインページ
-def login_view(request):
+def login_view(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
@@ -27,7 +28,7 @@ def login_view(request):
     return render(request, 'registration/login.html')
 
 # 新規登録ページ
-def signup_view(request):
+def signup_view(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():

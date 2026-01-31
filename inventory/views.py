@@ -1,7 +1,8 @@
+from typing import Optional, Dict, Any
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import InventoryItem, Rental, ReturnLog
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpRequest, HttpResponse, HttpResponseRedirect
 from .forms import InventoryItemForm, ItemSearchForm, RentalForm
 from django.core.exceptions import PermissionDenied
 from django.views.generic.edit import DeleteView
@@ -32,16 +33,16 @@ import logging    #確認用
 
 
 # 一般ユーザー判定関数
-def is_general_user(user):
+def is_general_user(user: User) -> bool:
     return user.is_authenticated and not user.is_staff
 
 # 管理者判定関数
-def is_admin(user):
+def is_admin(user: User) -> bool:
     return user.is_superuser or user.is_staff
 
 @login_required
 @user_passes_test(is_admin)
-def admin_dashboard_view(request):
+def admin_dashboard_view(request: HttpRequest) -> HttpResponse:
     rentals = Rental.objects.select_related('item').all()
 
     monthly_data = defaultdict(lambda: defaultdict(int))  # {月: {品目: 貸出台数（個数）}}
@@ -87,7 +88,7 @@ def admin_dashboard_view(request):
     })
 
 @login_required
-def user_dashboard_view(request):
+def user_dashboard_view(request: HttpRequest) -> HttpResponse:
     items = InventoryItem.objects.filter(added_by=request.user)
     rentals = Rental.objects.filter(user=request.user).select_related('item')
 
@@ -181,7 +182,7 @@ def user_dashboard_view(request):
     })
 
 @login_required
-def redirect_after_login(request):
+def redirect_after_login(request: HttpRequest) -> HttpResponseRedirect:
     if request.user.is_staff:
         return redirect('admin_dashboard')  
     else:
@@ -189,7 +190,7 @@ def redirect_after_login(request):
 
 # 一覧表示ビュー
 @login_required
-def item_list(request):
+def item_list(request: HttpRequest) -> HttpResponse:
     if request.user.is_staff:
         return HttpResponseForbidden("管理者ユーザーはこのページにアクセスできません。")
 
@@ -293,8 +294,8 @@ class InventoryItemDeleteView(DeleteView):
     
 @login_required
 @transaction.atomic
-def rental_create(request, item_id=None):
-    item = None
+def rental_create(request: HttpRequest, item_id: Optional[int] = None) -> HttpResponse:
+    item: Optional[InventoryItem] = None
     if item_id:
         item = get_object_or_404(InventoryItem, pk=item_id)
 
@@ -327,13 +328,13 @@ def rental_create(request, item_id=None):
     return render(request, 'inventory/rental_create.html', {'form': form, 'item': item})
 
 @login_required
-def rental_list(request):
+def rental_list(request: HttpRequest) -> HttpResponse:
     rentals = Rental.objects.all().order_by('-rental_date')
     return render(request, 'inventory/rental_list.html', {'rentals': rentals})
 
 @login_required
 @transaction.atomic
-def return_item(request, rental_id):
+def return_item(request: HttpRequest, rental_id: int) -> HttpResponseRedirect:
     rental = get_object_or_404(Rental, id=rental_id, user=request.user)
 
     if request.method == 'POST' and rental.status == 'borrowed':
@@ -363,7 +364,7 @@ def return_item(request, rental_id):
     return redirect('user_dashboard')
 
 @login_required
-def all_rental_history_view(request):
+def all_rental_history_view(request: HttpRequest) -> HttpResponse:
     if not request.user.is_staff:
         return HttpResponseForbidden("このページは管理者のみアクセス可能です。")
     
@@ -422,7 +423,7 @@ def all_rental_history_view(request):
     })
 
 @login_required
-def export_rentals_csv(request):
+def export_rentals_csv(request: HttpRequest) -> HttpResponse:
     rentals = Rental.objects.filter(user=request.user)
 
     response = HttpResponse(content_type='text/csv; charset=utf-8')
@@ -446,7 +447,7 @@ def export_rentals_csv(request):
     return response
 
 @login_required
-def export_rentals_excel(request):
+def export_rentals_excel(request: HttpRequest) -> HttpResponse:
     rentals = Rental.objects.filter(user=request.user)
 
     wb = openpyxl.Workbook()
@@ -475,7 +476,7 @@ def export_rentals_excel(request):
     return response
 
 @login_required
-def export_rentals_pdf(request):
+def export_rentals_pdf(request: HttpRequest) -> HttpResponse:
     rentals = Rental.objects.filter(user=request.user).order_by('-rental_date')
 
     base_url = request.build_absolute_uri('/')
@@ -590,7 +591,7 @@ def export_all_rentals_excel(request):
 
 
 @staff_member_required
-def export_all_rentals_pdf(request):
+def export_all_rentals_pdf(request: HttpRequest) -> HttpResponse:
     rentals = Rental.objects.all().order_by('user__username', '-rental_date')
 
     # ベースURLの取得
@@ -704,7 +705,7 @@ def get_monthly_rental_data(user):
 
     return labels, data, datasets
 
-def home(request):
+def home(request: HttpRequest) -> HttpResponseRedirect:
     if request.user.is_authenticated:
         if request.user.is_staff:
             return redirect('admin_dashboard')  
