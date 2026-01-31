@@ -9,7 +9,11 @@
   <p style="margin-bottom: 1.5rem;">ようこそ、<strong>{{ request.user.username }}</strong> さん（管理者）</p>
 
   <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
-    <a href="/admin/" target="_blank" style="padding: 0.5rem 1rem; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px;">▶ 管理画面へ</a>
+    {% if request.user.is_superuser %}
+    <a href="/admin/" target="_blank" style="padding: 0.5rem 1rem; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px;">▶ Django管理画面へ</a>
+    {% else %}
+    <button onclick="alert('このアカウント({{ request.user.username }})はDjango管理画面へのアクセス権限がありません。\n\nスーパーユーザーのみアクセス可能です。\n\n※このアプリでは、デモ管理者とスーパーユーザーの権限を分離しています。');" style="padding: 0.5rem 1rem; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; opacity: 0.7;">▶ Django管理画面へ（権限なし）</button>
+    {% endif %}
     <a href="{% url 'all_rental_history' %}" style="padding: 0.5rem 1rem; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px;">▶ 全ユーザーの貸出履歴を見る</a>
   </div>
 

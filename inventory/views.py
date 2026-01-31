@@ -7,6 +7,7 @@ from django.core.exceptions import PermissionDenied
 from django.views.generic.edit import DeleteView
 from django.urls import reverse_lazy
 from django.db.models import Q
+from django.db import transaction
 from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -291,6 +292,7 @@ class InventoryItemDeleteView(DeleteView):
         return super().dispatch(request, *args, **kwargs)
     
 @login_required
+@transaction.atomic
 def rental_create(request, item_id=None):
     item = None
     if item_id:
@@ -330,6 +332,7 @@ def rental_list(request):
     return render(request, 'inventory/rental_list.html', {'rentals': rentals})
 
 @login_required
+@transaction.atomic
 def return_item(request, rental_id):
     rental = get_object_or_404(Rental, id=rental_id, user=request.user)
 

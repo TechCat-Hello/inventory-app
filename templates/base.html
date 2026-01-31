@@ -36,11 +36,29 @@
     }
 
     .logout-section a {
-      color: #ffc107;
+      color: #ffffff;
       text-decoration: none;
+      font-weight: 500;
     }
 
     .logout-section a:hover {
+      color: #ffc107;
+      text-decoration: underline;
+    }
+
+    .logout-btn {
+      background: none;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .logout-btn:hover {
+      color: #ffc107;
       text-decoration: underline;
     }
 
@@ -66,7 +84,7 @@
         ログイン中：{{ user.username }} |
         <form method="post" action="{% url 'logout' %}" style="display:inline;">
         {% csrf_token %}
-        <button type="submit" style="background:none;border:none;color:blue;cursor:pointer;padding:0;text-decoration:underline;">
+        <button type="submit" class="logout-btn">
           ログアウト
         </button>
       </form>
