@@ -341,6 +341,10 @@ def return_item(request, rental_id):
             rental.quantity -= 1
             rental.save()
             
+            # 在庫を1個増やす
+            rental.item.quantity += 1
+            rental.item.save()
+            
             ReturnLog.objects.create(rental=rental, returned_quantity=1, returned_by=request.user)
             messages.success(request, f"{rental.item.name}を1個返却しました。残り{rental.quantity}個貸出中です。")
         else:
@@ -348,6 +352,10 @@ def return_item(request, rental_id):
             rental.status = 'returned'
             rental.return_date = timezone.now().date()
             rental.save()
+            
+            # 在庫を1個増やす
+            rental.item.quantity += 1
+            rental.item.save()
             
             ReturnLog.objects.create(rental=rental, returned_quantity=1, returned_by=request.user)
             messages.success(request, f"{rental.item.name}をすべて返却しました。")
