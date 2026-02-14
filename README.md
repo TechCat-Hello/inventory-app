@@ -160,7 +160,8 @@
 
 ### テーブル構成
 
-#### **User（ユーザー）**
+**User（ユーザー）**
+
 Django標準の認証ユーザーテーブル
 
 | カラム名 | 型 | 説明 |
@@ -172,7 +173,10 @@ Django標準の認証ユーザーテーブル
 | is_staff | BOOLEAN | スタッフ権限 |
 | date_joined | DATETIME | 登録日時 |
 
-#### **Profile（プロフィール）**
+---
+
+**Profile（プロフィール）**
+
 ユーザーの追加情報
 
 | カラム名 | 型 | 説明 |
@@ -182,7 +186,10 @@ Django標準の認証ユーザーテーブル
 | is_admin | BOOLEAN | 管理者フラグ |
 | department | VARCHAR | 部署名 |
 
-#### **InventoryItem（備品）**
+---
+
+**InventoryItem（備品）**
+
 備品情報
 
 | カラム名 | 型 | 説明 |
@@ -198,7 +205,10 @@ Django標準の認証ユーザーテーブル
 | updated_at | DATETIME | 更新日時 |
 | added_by_id | INTEGER | 外部キー → User（登録者） |
 
-#### **Rental（貸出記録）**
+---
+
+**Rental（貸出記録）**
+
 備品の貸出情報
 
 | カラム名 | 型 | 説明 |
@@ -212,7 +222,10 @@ Django標準の認証ユーザーテーブル
 | return_date | DATE | 実際の返却日（NULL可） |
 | status | VARCHAR | ステータス（borrowed/returned） |
 
-#### **ReturnLog（返却履歴）**
+---
+
+**ReturnLog（返却履歴）**
+
 備品の返却履歴
 
 | カラム名 | 型 | 説明 |
