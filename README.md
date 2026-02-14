@@ -147,6 +147,95 @@
 
 ---
 
+## 📊 データベース設計（ER図）
+
+本アプリケーションのデータベース構造は以下の通りです。
+
+### ER図
+
+以下は、本アプリケーションのER図です。  
+データベースのテーブル間の関係性を視覚的に表現しています。
+
+![ER図](screenshots/inventory_ER.png)
+
+### テーブル構成
+
+#### **User（ユーザー）**
+Django標準の認証ユーザーテーブル
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | INTEGER | 主キー |
+| username | VARCHAR | ユーザー名 |
+| email | VARCHAR | メールアドレス |
+| password | VARCHAR | ハッシュ化されたパスワード |
+| is_staff | BOOLEAN | スタッフ権限 |
+| date_joined | DATETIME | 登録日時 |
+
+#### **Profile（プロフィール）**
+ユーザーの追加情報
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | INTEGER | 主キー |
+| user_id | INTEGER | 外部キー → User |
+| is_admin | BOOLEAN | 管理者フラグ |
+| department | VARCHAR | 部署名 |
+
+#### **InventoryItem（備品）**
+備品情報
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | INTEGER | 主キー |
+| name | VARCHAR | 備品名 |
+| category | VARCHAR | カテゴリ |
+| quantity | INTEGER | 在庫数 |
+| location | VARCHAR | 保管場所 |
+| description | TEXT | 説明 |
+| is_available | BOOLEAN | 利用可能フラグ |
+| created_at | DATETIME | 作成日時 |
+| updated_at | DATETIME | 更新日時 |
+| added_by_id | INTEGER | 外部キー → User（登録者） |
+
+#### **Rental（貸出記録）**
+備品の貸出情報
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | INTEGER | 主キー |
+| item_id | INTEGER | 外部キー → InventoryItem |
+| user_id | INTEGER | 外部キー → User（借用者） |
+| quantity | INTEGER | 貸出個数 |
+| rental_date | DATETIME | 貸出日時 |
+| expected_return_date | DATE | 返却予定日 |
+| return_date | DATE | 実際の返却日（NULL可） |
+| status | VARCHAR | ステータス（borrowed/returned） |
+
+#### **ReturnLog（返却履歴）**
+備品の返却履歴
+
+| カラム名 | 型 | 説明 |
+|---------|-----|------|
+| id | INTEGER | 主キー |
+| rental_id | INTEGER | 外部キー → Rental |
+| returned_by_id | INTEGER | 外部キー → User（返却処理者） |
+| returned_quantity | INTEGER | 返却個数 |
+| returned_at | DATETIME | 返却日時 |
+
+### リレーションシップ
+
+```
+User (1) ── (1) Profile                          
+User (1) ──< (0..N) InventoryItem (added_by)    
+User (1) ──< (0..N) Rental (user)               
+User (1) ──< (0..N) ReturnLog (returned_by)     
+InventoryItem (1) ──< (0..N) Rental             
+Rental (1) ──< (0..N) ReturnLog                 
+```
+
+---
+
 ## 📁 ローカルでのセットアップ（仮想環境を使う場合）
 
 ```bash
