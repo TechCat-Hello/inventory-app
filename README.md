@@ -281,6 +281,33 @@ docker compose exec web python manage.py createsuperuser
 アプリ本体: http://localhost:8000  
 管理画面: http://localhost:8000/admin/
 
+## 📦 依存管理（requirements の管理）
+
+このプロジェクトは依存関係を以下のように管理しています：
+
+- **`requirements.in`**：宣言的な依存定義（メインの依存とバージョン範囲）
+- **`requirements.txt`**：`pip-compile` で自動生成されるロック済み依存ファイル（全依存と推移的依存を固定化）
+
+### 依存を更新する手順
+
+1. `requirements.in` で新しいパッケージを追加、またはバージョン範囲を変更します
+2. 以下のコマンドで `requirements.txt` を再生成します：
+    ```bash
+    python -m pip install pip-tools
+    pip-compile requirements.in --output-file=requirements.txt
+    ```
+3. 再生成された `requirements.txt` をコミットして、本番へデプロイします
+
+### 更新を反映してローカル環境にインストール
+
+```bash
+pip install -r requirements.txt
+```
+
+**本番環境では常にロック済みの `requirements.txt` を使用してください。** これにより、再デプロイ時に依存バージョンが予期せず変わることを防ぎます。
+
+---
+
 ## ⚙️ 環境変数の設定
 このアプリでは環境変数を `.env` ファイルで管理しています。  
 以下の手順で `.env` ファイルを設定してください。
