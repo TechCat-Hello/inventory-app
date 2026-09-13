@@ -28,8 +28,13 @@ from django.views import View
 from datetime import datetime, timedelta
 from django.conf import settings
 import os
-from weasyprint.text.fonts import FontConfiguration   #確認用
-import logging    #確認用
+import logging
+
+# WeasyPrintのログ出力を有効化（Renderのログタブで確認可能）。
+# リクエストのたびにハンドラが増え続けないよう、モジュール読み込み時に一度だけ設定する。
+_weasyprint_logger = logging.getLogger("weasyprint")
+_weasyprint_logger.setLevel(logging.DEBUG)
+_weasyprint_logger.addHandler(logging.StreamHandler())
 
 
 # 一般ユーザー判定関数
@@ -494,11 +499,6 @@ def export_rentals_pdf(request: HttpRequest) -> HttpResponse:
     # HTML をテンプレートから生成
     html_string = render_to_string('inventory/rental_history_pdf.html', context)
 
-    # WeasyPrint のログ出力を有効化（Render のログタブで確認可能）
-    logger = logging.getLogger("weasyprint")
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(logging.StreamHandler())
-
     # フォントファイルのパス
     font_path = os.path.join(settings.STATIC_ROOT, 'fonts', 'NotoSansCJKjp-Regular.otf')
 
@@ -609,12 +609,7 @@ def export_all_rentals_pdf(request: HttpRequest) -> HttpResponse:
 
     # HTMLをテンプレートから生成
     html_string = render_to_string('inventory/all_rentals_pdf.html', context)
-    
-    # WeasyPrintのログ設定（Renderのログタブで確認可能）
-    logger = logging.getLogger("weasyprint")
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(logging.StreamHandler())
-    
+
     # フォントファイルの絶対パスを取得
     font_path = os.path.join(settings.STATIC_ROOT, 'fonts', 'NotoSansCJKjp-Regular.otf')
     
@@ -713,10 +708,10 @@ def get_monthly_rental_data(user):
 def home(request: HttpRequest) -> HttpResponseRedirect:
     if request.user.is_authenticated:
         if request.user.is_staff:
-            return redirect('admin_dashboard')  
+            return redirect('admin_dashboard')
         else:
-            return redirect('login')  
-    return redirect('login') 
+            return redirect('user_dashboard')
+    return redirect('login')
 
 class SignupView(View):
     def dispatch(self, request, *args, **kwargs):
