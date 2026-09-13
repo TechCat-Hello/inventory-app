@@ -14,7 +14,6 @@ urlpatterns = [
     path('rentals/', views.rental_list, name='rental_list'),
     path('rental/create/<int:item_id>/', views.rental_create, name='rental_create'),
     path('return_item/<int:rental_id>/', views.return_item, name='return_item'),
-    path('admin_rentals/', views.all_rental_history_view, name='all_rental_history'),
     path('all_rental_history/', views.all_rental_history_view, name='all_rental_history'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     path('export/csv/', views.export_rentals_csv, name='export_rentals_csv'),
