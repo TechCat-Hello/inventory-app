@@ -297,7 +297,12 @@ class InventoryItemDeleteView(DeleteView):
 def rental_create(request: HttpRequest, item_id: Optional[int] = None) -> HttpResponse:
     item: Optional[InventoryItem] = None
     if item_id:
-        item = get_object_or_404(InventoryItem, pk=item_id)
+        # POST時は行ロックを取得し、在庫チェックと更新の間に他のリクエストが
+        # 割り込んで在庫がマイナスになる競合状態を防ぐ
+        if request.method == 'POST':
+            item = get_object_or_404(InventoryItem.objects.select_for_update(), pk=item_id)
+        else:
+            item = get_object_or_404(InventoryItem, pk=item_id)
 
     if request.method == 'POST':
         # item を initial に渡す（cleanメソッドで使用）

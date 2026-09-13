@@ -1,4 +1,8 @@
-from django.test import TestCase, Client
+import threading
+import time
+
+from django.db import transaction
+from django.test import TestCase, TransactionTestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse
 from .models import InventoryItem, Rental
@@ -121,8 +125,76 @@ class PermissionTestCase(TestCase):
         """テスト5: 認証チェック：未ログインユーザーを弾く"""
         # ログインせずにダッシュボードにアクセス
         response = self.client.get(reverse('user_dashboard'))
-        
+
         # ログインページにリダイレクトされることを確認
         self.assertEqual(response.status_code, 302)
         self.assertIn('/accounts/login/', response.url)
+
+
+class InventoryItemLockingTestCase(TransactionTestCase):
+    """rental_create が在庫更新の排他制御に使っている
+    select_for_update() が、実際にDBレベルで行ロックとして
+    機能することを検証するテスト。
+
+    2つのスレッドでそれぞれ別トランザクションを開始し、
+    threading.Event で「先行トランザクションがロックを取得した
+    タイミング」「後続トランザクションが読み取りを試みるタイミング」
+    を明示的に同期させることで、タイミング依存のない確実な検証を行う。
+
+    先行トランザクションが select_for_update() でロックを保持した
+    まま quantity=0 に更新してコミットするまで、後続トランザクションの
+    select_for_update() はブロックされ、コミット後の最新値(0)を
+    読み取れることを確認する。ここで select_for_update() を外すと、
+    後続の読み取りはロックされずコミット前の古い値(1)を読んでしまい、
+    rental_create の在庫チェックが古い在庫数に基づいて行われる
+    (＝同時貸出でオーバーセルが起こる)ことになる。
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='locker', password='testpass123')
+        self.item = InventoryItem.objects.create(
+            name='ロックテスト用備品',
+            category='テスト',
+            quantity=1,
+            is_available=True,
+            added_by=self.user,
+        )
+
+    def test_select_for_update_blocks_until_holder_commits(self):
+        holder_has_lock = threading.Event()
+        release_holder = threading.Event()
+        second_read = {}
+
+        def holder():
+            with transaction.atomic():
+                item = InventoryItem.objects.select_for_update().get(pk=self.item.pk)
+                holder_has_lock.set()
+                release_holder.wait(timeout=5)
+                item.quantity = 0
+                item.save()
+            # ここでコミットされ、行ロックが解放される
+
+        def waiter():
+            holder_has_lock.wait(timeout=5)
+            with transaction.atomic():
+                item = InventoryItem.objects.select_for_update().get(pk=self.item.pk)
+                second_read['quantity'] = item.quantity
+
+        t1 = threading.Thread(target=holder)
+        t2 = threading.Thread(target=waiter)
+
+        t1.start()
+        self.assertTrue(holder_has_lock.wait(timeout=5), "holderがロックを取得できなかった")
+
+        t2.start()
+        # t2 が select_for_update() の行ロック待ちでブロックされる猶予を与える
+        time.sleep(0.3)
+        release_holder.set()
+
+        t1.join(timeout=5)
+        t2.join(timeout=5)
+
+        # select_for_update が効いていれば、t2 は holder のコミット後の
+        # 最新値(0)しか読めない(古い値の1を読めてしまってはいけない)
+        self.assertEqual(second_read.get('quantity'), 0)
 
