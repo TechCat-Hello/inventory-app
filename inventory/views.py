@@ -4,9 +4,6 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import InventoryItem, Rental, ReturnLog
 from django.http import HttpResponseForbidden, HttpRequest, HttpResponse, HttpResponseRedirect
 from .forms import InventoryItemForm, ItemSearchForm, RentalForm
-from django.core.exceptions import PermissionDenied
-from django.views.generic.edit import DeleteView
-from django.urls import reverse_lazy
 from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
@@ -19,8 +16,6 @@ from openpyxl.utils import get_column_letter
 from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models.functions import TruncMonth
-from django.db.models import Count, Sum
 from django.utils.timezone import now, localtime
 import calendar
 from collections import defaultdict
@@ -268,35 +263,6 @@ def item_delete(request, pk):
         return redirect('user_dashboard')
     return render(request, 'inventory/item_confirm_delete.html', {'item': item})
 
-@login_required
-def edit_item(request, pk):
-    item = get_object_or_404(InventoryItem, pk=pk)
-
-    # 一般ユーザーは自分が登録したものだけ編集可能
-    if not request.user.is_superuser and item.added_by!= request.user:
-        return redirect('user_dashboard')  # 不正アクセス防止
-
-    if request.method == 'POST':
-        form = InventoryItemForm(request.POST, instance=item)
-        if form.is_valid():
-            form.save()
-            return redirect('user_dashboard') 
-    else:
-        form = InventoryItemForm(instance=item)
-
-    return render(request, 'inventory/edit_item.html', {'form': form, 'item': item})
-
-class InventoryItemDeleteView(DeleteView):
-    model = InventoryItem
-    template_name = 'inventory/item_confirm_delete.html'
-    success_url = reverse_lazy('items_list')
-
-    def dispatch(self, request, *args, **kwargs):
-        obj = self.get_object()
-        if obj.added_by != request.user:
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
-    
 @login_required
 @transaction.atomic
 def rental_create(request: HttpRequest, item_id: Optional[int] = None) -> HttpResponse:
@@ -650,60 +616,6 @@ def export_all_rentals_pdf(request: HttpRequest) -> HttpResponse:
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="all_rental_history.pdf"'
     return response
-
-def get_monthly_rental_data(user):
-    if user.is_staff:
-        rentals = Rental.objects.all()
-        # 管理者は貸出台数を「備品の数量（Sum）」で表示
-        monthly_totals = rentals.annotate(month=TruncMonth('rental_date')) \
-                                .values('month') \
-                                .annotate(total_quantity=Sum('quantity')) \
-                                .order_by('month')
-
-        item_month_data = rentals.annotate(month=TruncMonth('rental_date')) \
-                                 .values('item__name', 'month') \
-                                 .annotate(total_quantity=Sum('quantity')) \
-                                 .order_by('month')
-    else:
-        rentals = Rental.objects.filter(user=user)
-        # 一般ユーザーは貸出台数を「借りた回数（Count）」で表示
-        monthly_totals = rentals.annotate(month=TruncMonth('rental_date')) \
-                                .values('month') \
-                                .annotate(total_quantity=Count('id')) \
-                                .order_by('month')
-
-        item_month_data = rentals.annotate(month=TruncMonth('rental_date')) \
-                                 .values('item__name', 'month') \
-                                 .annotate(total_quantity=Count('id')) \
-                                 .order_by('month')
-
-    # 共通処理：月ごとのラベルとデータ作成
-    labels = []
-    data = []
-    for entry in monthly_totals:
-        month_label = entry['month'].strftime('%Y-%m')
-        labels.append(month_label)
-        data.append(entry['total_quantity'])
-
-    # 品目別・月別データ整形
-    item_data = defaultdict(lambda: [0] * len(labels))
-    month_index = {label: i for i, label in enumerate(labels)}
-
-    for entry in item_month_data:
-        item_name = entry['item__name']
-        month_label = entry['month'].strftime('%Y-%m')
-        idx = month_index.get(month_label)
-        if idx is not None:
-            item_data[item_name][idx] = entry['total_quantity']
-
-    # Chart.js datasets形式へ変換
-    datasets = [{
-        'label': item,
-        'data': quantities,
-        'backgroundColor': f'rgba({(i * 50) % 255}, {(i * 80) % 255}, {(i * 110) % 255}, 0.6)'
-    } for i, (item, quantities) in enumerate(item_data.items())]
-
-    return labels, data, datasets
 
 def home(request: HttpRequest) -> HttpResponseRedirect:
     if request.user.is_authenticated:
