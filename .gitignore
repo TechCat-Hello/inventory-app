@@ -20,6 +20,9 @@ db.sqlite3
 # VSCode
 .vscode/
 
+# Claude Code local settings
+.claude/
+
 # Python
 *.egg-info/
 dist/
