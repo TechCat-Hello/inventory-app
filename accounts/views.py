@@ -8,7 +8,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.conf import settings
 
 # ログインページ
 def login_view(request: HttpRequest) -> HttpResponse:
@@ -29,6 +30,9 @@ def login_view(request: HttpRequest) -> HttpResponse:
 
 # 新規登録ページ
 def signup_view(request: HttpRequest) -> HttpResponse:
+    if not settings.DEBUG:
+        return HttpResponseForbidden("本番環境では新規登録できません。")
+
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
