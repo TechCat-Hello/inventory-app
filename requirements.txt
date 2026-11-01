@@ -6,15 +6,17 @@
 #
 asgiref==3.11.1
     # via django
-brotli==1.2.0
-    # via fonttools
+brotli==1.2.1
+    # via
+    #   -r requirements.in
+    #   fonttools
 cffi==2.0.0
     # via weasyprint
 cssselect2==0.9.0
     # via weasyprint
 dj-database-url==3.1.2
     # via -r requirements.in
-django==4.2.30
+django==5.2.18
     # via
     #   -r requirements.in
     #   dj-database-url
@@ -31,8 +33,10 @@ openpyxl==3.1.5
     # via -r requirements.in
 packaging==26.1
     # via gunicorn
-pillow==12.2.0
-    # via weasyprint
+pillow==13.0.0
+    # via
+    #   -r requirements.in
+    #   weasyprint
 psycopg2-binary==2.9.11
     # via -r requirements.in
 pycparser==3.0
@@ -45,8 +49,10 @@ python-decouple==3.8
     # via -r requirements.in
 python-dotenv==1.2.2
     # via -r requirements.in
-sqlparse==0.5.5
-    # via django
+sqlparse==0.6.0
+    # via
+    #   -r requirements.in
+    #   django
 tinycss2==1.5.1
     # via
     #   cssselect2
@@ -55,7 +61,7 @@ tinyhtml5==2.1.0
     # via weasyprint
 tzdata==2026.1
     # via django
-weasyprint==68.1
+weasyprint==70.0
     # via -r requirements.in
 webencodings==0.5.1
     # via
